@@ -8,6 +8,8 @@ app.use(express.static(__dirname + '/public'));
 
 function onConnection(socket) {
     console.log("new client connected");
+    socket.emit('newc', 'new client connected');
+    socket.on('disconnect', () => { console.log("client disconnected"); })
 }
 
 io.on('connection', onConnection);
