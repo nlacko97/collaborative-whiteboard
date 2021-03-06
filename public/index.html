@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
     <title>Collaborative Whiteboard</title>
 </head>
 
@@ -14,8 +15,35 @@
             Collaborative Whiteboard application
         </h4>
     </div>
+    <div class="tools-list">
+        <div class="tool">
+            <a href="#">
+                <i class="ri-brush-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#">
+                <i class="ri-eraser-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#">
+                <i class="ri-sticky-note-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#">
+                <i class="ri-image-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#">
+                <i class="ri-arrow-down-circle-line"></i>
+            </a>
+        </div>
+    </div>
     <div class="whiteboard">
-        <button id="new_session">Start new session</button>
+        <button id="new_session">Join session</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

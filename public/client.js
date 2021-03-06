@@ -2,11 +2,12 @@ let newSessionButton = document.getElementById('new_session');
 let socket = io();
 
 newSessionButton.addEventListener('click', () => {
-
-    console.log("sending socket connection request");
-
+    socket.emit('join-session', {
+        connectionId: socket.id
+    });
+    console.log("sending join-session request");
 })
 
-socket.on('newc', (data) => {
-    console.log("received from server: " + data);
+socket.on('connect', () => {
+    console.log("connection id: " + socket.id);
 })
