@@ -21,6 +21,7 @@ MongoClient.connect(uri, (err, db) => {
         console.log("new client :" + socket.id);
         socket.on('disconnect', () => { console.log("client disconnected"); })
         socket.on('join-session', joinSession);
+        socket.on('delete-session', deleteSession);
     }
 
     /**
@@ -48,6 +49,13 @@ MongoClient.connect(uri, (err, db) => {
             }
 
         });
+    }
+
+    function deleteSession() {
+        dbo.collection('sessions').deleteOne((err, res) => {
+            if (err) throw err;
+            console.log("session deleted");
+        })
     }
 
     io.on('connection', onConnection);
