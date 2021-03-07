@@ -1,5 +1,5 @@
 let newSessionButton = document.getElementById('new_session');
-let deleteSessionButton = document.getElementById('delete_session');
+let endSessionButton = document.getElementById('end_session');
 let socket = io();
 
 newSessionButton.addEventListener('click', () => {
@@ -9,11 +9,11 @@ newSessionButton.addEventListener('click', () => {
     console.log("sending join-session request");
 })
 
-deleteSessionButton.addEventListener('click', () => {
-    socket.emit('delete-session', {
+endSessionButton.addEventListener('click', () => {
+    socket.emit('end-session', {
         connectionId: socket.id
     });
-    console.log("sending delete-session request");
+    console.log("sending end-session request");
 })
 
 socket.on('connect', () => {
