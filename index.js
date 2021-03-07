@@ -22,6 +22,10 @@ MongoClient.connect(uri, (err, db) => {
         socket.on('disconnect', () => { console.log("client disconnected"); })
         socket.on('join-session', joinSession);
         socket.on('end-session', endSession);
+        socket.on('move-sticky-note', () => {
+            console.log("Received sticky note moved message on server");
+            socket.broadcast.emit("broadcast", {type: 'move-sticky-note'});
+        });
     }
 
     /**
