@@ -43,10 +43,13 @@
         </div>
     </div>
     <div class="whiteboard">
-        <button id="new_session">Join session</button>
-        <button id="end_session">End session</button>
-        <button id="move_sticky_note">Move sticky note</button>
+        <canvas id="canvas" width="400px" height="400px">
+        </canvas>
     </div>
+
+    <button id="new_session">Join session</button>
+    <button id="end_session">End session</button>
+    <button id="move_sticky_note">Move sticky note</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="./client.js"></script>
