@@ -1,5 +1,8 @@
 window.onload = function () {
-
+var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
+console.log(encrypted.toString());
+var decrypted = CryptoJS.AES.decrypt(encrypted, "Secret Passphrase");
+console.log(decrypted.toString(CryptoJS.enc.Utf8))
 // Definitions
   var canvas = document.getElementById("canvas");
   var context = canvas.getContext("2d");
@@ -96,10 +99,4 @@ endSessionButton.addEventListener('click', () => {
   canvas.addEventListener('mouseup', function(event) {
     isDrawing = false;
   });
-
-  // Mouse Leave Event
-
-  canvas.addEventListener('mouseleave', function(event) {
-      isDrawing = false;
-    });
 }
