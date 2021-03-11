@@ -19,20 +19,32 @@ MongoClient.connect(uri, (err, db) => {
 
     function onConnection(socket) {
         console.log("new client :" + socket.id);
-        socket.on('disconnect', () => { console.log("client disconnected"); })
+        socket.on('disconnect', () => {
+            console.log("client disconnected");
+        })
         socket.on('join-session', joinSession);
         socket.on('end-session', endSession);
         socket.on('move-sticky-note', (message) => {
             console.log("Received sticky note moved message on server");
             console.log(message);
             //TODO process message, add it to history, etc.
-            socket.broadcast.emit("broadcast", {type: 'move-sticky-note', id: message.id, position: message.position});
+            socket.broadcast.emit("broadcast", {
+                type: 'move-sticky-note',
+                id: message.id,
+                position: message.position
+            });
         });
 
         socket.on('freehand-drawing', (message) => {
 
-                    socket.broadcast.emit("broadcast", {type: 'freehand-drawing', moveToX: message.moveToX, moveToY: message.moveToY, lineToX: message.lineToX, lineToY: message.lineToY});
-                });
+            socket.broadcast.emit("broadcast", {
+                type: 'freehand-drawing',
+                moveToX: message.moveToX,
+                moveToY: message.moveToY,
+                lineToX: message.lineToX,
+                lineToY: message.lineToY
+            });
+        });
     }
 
     /**
