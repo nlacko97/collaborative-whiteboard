@@ -10,6 +10,7 @@
 </head>
 
 <body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
     <div class="title">
         <h4>
             Collaborative Whiteboard application
@@ -43,10 +44,13 @@
         </div>
     </div>
     <div class="whiteboard">
-        <button id="new_session">Join session</button>
-        <button id="end_session">End session</button>
-        <button id="move_sticky_note">Move sticky note</button>
+        <canvas id="canvas" width="400px" height="400px">
+        </canvas>
     </div>
+
+    <button id="new_session">Join session</button>
+    <button id="end_session">End session</button>
+    <button id="move_sticky_note">Move sticky note</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="./client.js"></script>
