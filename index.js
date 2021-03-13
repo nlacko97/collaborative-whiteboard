@@ -8,9 +8,11 @@ const port = process.env.PORT || 3000;
 // initialize Mongo client and create connection uri
 const MongoClient = require('mongodb').MongoClient;
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER_NAME}.exvpx.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`;
+let hostUserId;
 
-
-MongoClient.connect(uri, (err, db) => {
+MongoClient.connect(uri, {
+    useUnifiedTopology: true
+}, (err, db) => {
     if (err) throw err;
     let dbo = db.db(process.env.DB_DATABASE);
     console.log("Connected to database");
@@ -24,6 +26,11 @@ MongoClient.connect(uri, (err, db) => {
         })
         socket.on('join-session', joinSession);
         socket.on('end-session', endSession);
+        socket.on('new-client-request-decision', (data) => {
+            io.to(data.clientId).emit("new-client-request-decision", {
+                accepted: data.accepted
+            })
+        })
         socket.on('move-sticky-note', (message) => {
             console.log("Received sticky note moved message on server");
             console.log(message);
@@ -52,7 +59,7 @@ MongoClient.connect(uri, (err, db) => {
      * If no session exists, a new session is created and and the requesting user becomes the host
      * If a session exists, a message will be sent to the host user to accept/reject the incoming request
      */
-    function joinSession(data) {
+    function joinSession(data, callback) {
         console.log("new join-session request received");
         dbo.collection('sessions').countDocuments((err, count) => {
 
@@ -60,6 +67,13 @@ MongoClient.connect(uri, (err, db) => {
 
             if (count) {
                 // TODO: implement joining an existing session functionality
+                io.to(hostUserId).emit("new-client-request", {
+                    message: `New client with connection id #${data.connectionId} would like to connect`,
+                    connectionId: data.connectionId
+                })
+                callback({
+                    status: "waiting"
+                })
             } else {
                 let newSession = {
                     startDate: Date(),
@@ -68,7 +82,11 @@ MongoClient.connect(uri, (err, db) => {
                 dbo.collection('sessions').insertOne(newSession, (err, succ) => {
                     if (err) throw err;
                     console.log("new session inserted");
+                    hostUserId = data.connectionId;
                 });
+                callback({
+                    status: "accepted"
+                })
             }
 
         });

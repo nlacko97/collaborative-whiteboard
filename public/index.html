@@ -6,52 +6,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./style.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <title>Collaborative Whiteboard</title>
 </head>
 
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
+    <div id="confirm-dialog">
+        <div class="message"></div>
+        <button class="yes">Yes</button>
+        <button class="no">No</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
+        integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
     <div class="title">
         <h4>
             Collaborative Whiteboard application
         </h4>
     </div>
-    <div class="tools-list">
-        <div class="tool">
-            <a href="#">
-                <i class="ri-brush-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#">
-                <i class="ri-eraser-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#">
-                <i class="ri-sticky-note-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#">
-                <i class="ri-image-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#">
-                <i class="ri-arrow-down-circle-line"></i>
-            </a>
-        </div>
-    </div>
     <div class="whiteboard">
+        <div class="tools-list">
+            <div class="tool">
+                <a href="#" title="Brush">
+                    <i class="ri-brush-line"></i>
+                </a>
+            </div>
+            <div class="tool">
+                <a href="#" title="Undo">
+                    <i class="ri-arrow-go-back-line"></i>
+                </a>
+            </div>
+            <div class="tool">
+                <a href="#" title="Eraser">
+                    <i class="ri-eraser-line"></i>
+                </a>
+            </div>
+            <div class="tool">
+                <a href="#" title="Sticky note">
+                    <i class="ri-sticky-note-line"></i>
+                </a>
+            </div>
+            <div class="tool">
+                <a href="#" title="Upload image">
+                    <i class="ri-image-line"></i>
+                </a>
+            </div>
+            <div class="tool">
+                <a href="#" title="Download whiteboard">
+                    <i class="ri-arrow-down-circle-line"></i>
+                </a>
+            </div>
+        </div>
         <canvas id="canvas" width="400px" height="400px">
         </canvas>
     </div>
 
-    <button id="new_session">Join session</button>
-    <button id="end_session">End session</button>
-    <button id="move_sticky_note">Move sticky note</button>
+    <div id="initial-state">
+        <button id="new-session">Join session</button>
+    </div>
+    <div id="loading-state">
+        <i class="ri-remote-control-line"></i> waiting to join session ...
+    </div>
+    <button id="end-session">End session</button>
+    <!-- <button id="move_sticky_note">Move sticky note</button> -->
 
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+        integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="./client.js"></script>
 </body>

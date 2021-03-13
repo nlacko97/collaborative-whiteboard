@@ -17,7 +17,8 @@ body {
     display: flex;
     justify-content: space-around;
     border: 2px solid grey;
-    margin: 0 5rem;
+    margin: 1rem 5rem;
+    width: 400px;
 }
 
 .tool > a {
@@ -34,16 +35,25 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     margin: 1rem 5rem;
-    height: 70vh;
+    height: 80vh;
 }
 
 .whiteboard > canvas  {
     background-color: white;
     border: 2px solid grey;
+    /* width: 400px;
+    height: 400px; */
+    /* width: 100%; */
 }
 
-.whiteboard > button {
+#initial-state, #loading-state {
+    display: flex;
+    justify-content: center;
+}
+
+button {
     border-radius: 20px;
     border: 2px solid grey;
     margin: 2rem;
@@ -55,6 +65,32 @@ body {
     cursor: pointer;
 }
 
-.whiteboard > button:hover {
+button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
 }
+
+#confirm-dialog {
+    display: none;
+    background: linear-gradient(to right, rgba(171, 255, 205, 1), rgba(171, 255, 242, 1));
+    border: 1px solid #aaa;
+    position: fixed;
+    width: 400px;
+    left: 50%;
+    margin-left: -200px;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+ }
+ #confirm-dialog button {
+    background-color: #48E5DA;
+    display: inline-block;
+    border-radius: 5px;
+    border: 1px solid #aaa;
+    padding: 5px;
+    text-align: center;
+    width: 80px;
+    cursor: pointer;
+ }
+ #confirm-dialog .message {
+    text-align: center;
+ }
