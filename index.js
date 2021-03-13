@@ -45,6 +45,15 @@ MongoClient.connect(uri, (err, db) => {
                 lineToY: message.lineToY
             });
         });
+
+        socket.on('erase', (message) => {
+
+                    socket.broadcast.emit("broadcast", {
+                        type: 'erase',
+                        arcX: message.arcX,
+                        arcY: message.arcY
+                    });
+                });
     }
 
     /**

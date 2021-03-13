@@ -19,12 +19,12 @@
     <div class="tools-list">
         <div class="tool">
             <a href="#">
-                <i class="ri-brush-line"></i>
+                <i class="ri-brush-line" id="brush"></i>
             </a>
         </div>
         <div class="tool">
             <a href="#">
-                <i class="ri-eraser-line"></i>
+                <i class="ri-eraser-line" id="eraser"></i>
             </a>
         </div>
         <div class="tool">
@@ -43,9 +43,9 @@
             </a>
         </div>
     </div>
-    <div class="whiteboard">
-        <canvas id="canvas" width="400px" height="400px">
-        </canvas>
+    <div id="whiteboard">
+        <canvas id="background-canvas" width="1000px" height="500px"></canvas>
+        <canvas id="canvas" width="1000px" height="500px"></canvas>
     </div>
 
     <button id="new_session">Join session</button>

@@ -30,7 +30,7 @@ body {
     text-shadow: 2px 2px 2px #b8b6b6;
 }
 
-.whiteboard {
+#whiteboard {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -38,12 +38,28 @@ body {
     height: 70vh;
 }
 
-.whiteboard > canvas  {
-    background-color: white;
+#whiteboard > canvas  {
+    position: absolute;
     border: 2px solid grey;
 }
 
-.whiteboard > button {
+#background-canvas {
+    background-color: white;
+}
+
+#canvas {
+    background: transparent;
+}
+
+#upload-image-position-selector {
+    position: absolute;
+    border: 2px solid grey;
+    width: 1000px;
+    height: 500px;
+    background-color: rgba(0,0,0,0.3);
+}
+
+#whiteboard > button {
     border-radius: 20px;
     border: 2px solid grey;
     margin: 2rem;
@@ -55,6 +71,10 @@ body {
     cursor: pointer;
 }
 
-.whiteboard > button:hover {
+#whiteboard > button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
+}
+
+#imageLoader {
+    display: none
 }
