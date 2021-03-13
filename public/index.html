@@ -23,41 +23,41 @@
             Collaborative Whiteboard application
         </h4>
     </div>
-    <div class="whiteboard">
-        <div class="tools-list">
-            <div class="tool">
-                <a href="#" title="Brush">
-                    <i class="ri-brush-line"></i>
-                </a>
-            </div>
-            <div class="tool">
-                <a href="#" title="Undo">
-                    <i class="ri-arrow-go-back-line"></i>
-                </a>
-            </div>
-            <div class="tool">
-                <a href="#" title="Eraser">
-                    <i class="ri-eraser-line"></i>
-                </a>
-            </div>
-            <div class="tool">
-                <a href="#" title="Sticky note">
-                    <i class="ri-sticky-note-line"></i>
-                </a>
-            </div>
-            <div class="tool">
-                <a href="#" title="Upload image">
-                    <i class="ri-image-line"></i>
-                </a>
-            </div>
-            <div class="tool">
-                <a href="#" title="Download whiteboard">
-                    <i class="ri-arrow-down-circle-line"></i>
-                </a>
-            </div>
+    <div class="tools-list">
+        <div class="tool">
+            <a href="#" title="Brush">
+                <i class="ri-brush-line" id="brush"></i>
+            </a>
         </div>
-        <canvas id="canvas" width="400px" height="400px">
-        </canvas>
+        <div class="tool">
+            <a href="#" title="Undo">
+                <i class="ri-arrow-go-back-line" id="eraser"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#" title="Eraser">
+                <i class="ri-eraser-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#" title="Sticky note">
+                <i class="ri-sticky-note-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#" title="Upload image">
+                <i class="ri-image-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="#" title="Download whiteboard">
+                <i class="ri-arrow-down-circle-line"></i>
+            </a>
+        </div>
+    </div>
+    <div id="whiteboard">
+        <canvas id="background-canvas" width="1000px" height="500px"></canvas>
+        <canvas id="canvas" width="1000px" height="500px"></canvas>
     </div>
 
     <div id="initial-state">
