@@ -54,13 +54,24 @@ MongoClient.connect(uri, {
         });
 
         socket.on('erase', (message) => {
-
                     socket.broadcast.emit("broadcast", {
                         type: 'erase',
                         arcX: message.arcX,
                         arcY: message.arcY
                     });
                 });
+
+
+        socket.on('image-upload', (message) => {
+            socket.broadcast.emit("broadcast", {
+                image: true,
+                type: 'image-upload',
+                imageSrc: message.imageSrc,
+                startX: message.startX,
+                startY: message.startY
+            });
+        });
+
     }
 
     /**

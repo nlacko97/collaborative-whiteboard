@@ -26,7 +26,7 @@ window.onload = function () {
     context.lineWidth = 1; // initial brush width
     var isMousePressed = false;
     var mode = "brush";
-    var lastEvent;
+    var lastEvent = null;
 
     let newSessionButton = document.getElementById('new-session');
     let endSessionButton = document.getElementById('end-session');
@@ -128,6 +128,13 @@ window.onload = function () {
                     context.arc(message.arcX, message.arcY, 20, 0, Math.PI*2, false);
                     context.fill();
                     break;
+                case 'image-upload':
+                    var img = new Image();
+                    img.onload = function() {
+                        contextBackground.drawImage(img, message.startX, message.startY);
+                    }
+                    img.src = message.imageSrc;
+                    break;
                 default:
                     console.log("Unknown broadcast message type");
                     break;
@@ -160,6 +167,8 @@ window.onload = function () {
                 context.globalCompositeOperation="source-over";
                 // Draw line segment
                 context.moveTo(lastEvent.offsetX, lastEvent.offsetY);
+                                    console.log(lastEvent.offsetX);
+                                    console.log(lastEvent.offsetY);
                 context.lineTo(event.offsetX, event.offsetY);
                 context.stroke();
                 // Emit drawing event
@@ -196,5 +205,62 @@ window.onload = function () {
         mode = "eraser";
     });
 
+    // Upload image to board
+    var imageLoader = document.getElementById('imageLoader');
+    imageLoader.addEventListener('change', function(e) {
+        var uploadImagePositionSelector = document.createElement("div");
+        uploadImagePositionSelector.id = "upload-image-position-selector";
+        uploadImagePositionSelector.addEventListener('click', function(clickEvent) {
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                const imageBytes = new Uint8Array(this.result);
+                var img = new Image();
+                img.onload = function() {
+                    // Get coordinates of upper left corner (from where the image will start)
+                    var rect = clickEvent.target.getBoundingClientRect();
+                    var startX = clickEvent.clientX - rect.left;
+                    var startY = clickEvent.clientY - rect.top;
 
+                    // Save image initial size
+                    var imgWidth = img.width;
+                    var imgHeight = img.height;
+                    var widthToHeightRation = imgWidth/imgHeight;
+
+                    // Resize image so that neither width nor height takes more than 50% of the whiteboard, but still keep the width to height proportions
+                    if (imgWidth > canvasWidth/2) {
+                        imgWidth = canvasWidth/2;
+                        imgHeight = imgWidth/widthToHeightRation;
+                    }
+                    if (imgHeight > canvasHeight/2) {
+                        imgHeight = canvasHeight/2;
+                        imgWidth = imgHeight*widthToHeightRation;
+                    }
+
+                    var tempCanvas = document.createElement('CANVAS');
+                    var tempCtx = tempCanvas.getContext('2d');
+                    var dataUrl;
+                    tempCanvas.height = imgHeight;
+                    tempCanvas.width = imgWidth;
+                    tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
+                    dataUrl = tempCanvas.toDataURL();
+
+
+                    contextBackground.drawImage(img, startX, startY, imgWidth, imgHeight);
+                    uploadImagePositionSelector.remove();
+                    // Broadcast image
+                    socket.emit('image-upload', {
+                        image: true,
+                        imageSrc: dataUrl,
+                        startX: startX,
+                        startY: startY
+                    });
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        var whiteboardDivContainer = document.getElementById("whiteboard");
+        whiteboardDivContainer.appendChild(uploadImagePositionSelector);
+    });
 }
