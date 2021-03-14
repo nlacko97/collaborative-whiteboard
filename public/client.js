@@ -20,6 +20,9 @@ window.onload = function () {
     $loadingStateDiv.hide();
     $whiteboardDiv.hide();
     $toolsListDiv.hide();
+    let $brushLink = $("#brush");
+    let $eraserLink = $("#eraser");
+    
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -32,6 +35,20 @@ window.onload = function () {
     let endSessionButton = document.getElementById('end-session');
     let moveStickyNoteButton = document.getElementById('move_sticky_note');
     let socket = io();
+
+    $($brushLink).on('click', () => {
+        mode = "brush";
+        $($brushLink).addClass("selected");
+        $($eraserLink).removeClass("selected");
+        $(canvas).css("cursor", "url('images/cursor-brush.cur'), auto");
+    })
+
+    $($eraserLink).on('click', () => {
+        mode = "eraser";
+        $($eraserLink).addClass("selected");
+        $($brushLink).removeClass("selected");
+        $(canvas).css("cursor", "url('images/cursor-eraser.cur'), auto");
+    })
 
     socket.on('connect', () => {
         console.log("connection id: " + socket.id);
@@ -167,8 +184,6 @@ window.onload = function () {
                 context.globalCompositeOperation="source-over";
                 // Draw line segment
                 context.moveTo(lastEvent.offsetX, lastEvent.offsetY);
-                                    console.log(lastEvent.offsetX);
-                                    console.log(lastEvent.offsetY);
                 context.lineTo(event.offsetX, event.offsetY);
                 context.stroke();
                 // Emit drawing event
@@ -197,13 +212,7 @@ window.onload = function () {
         isMousePressed = false;
     });
 
-    document.getElementById('brush').addEventListener('click', function(event) {
-        mode = "brush";
-    });
-
-    document.getElementById('eraser').addEventListener('click', function(event) {
-        mode = "eraser";
-    });
+    
 
     // Upload image to board
     var imageLoader = document.getElementById('imageLoader');

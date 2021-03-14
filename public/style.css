@@ -28,6 +28,12 @@ body {
 
 .tool > a:hover {
     text-shadow: 2px 2px 2px #b8b6b6;
+    font-size: xx-large;
+}
+
+a.selected {
+    color: rgb(64, 134, 124);
+    font-size: xx-large;
 }
 
 #whiteboard {
@@ -51,6 +57,7 @@ body {
 
 #canvas {
     background: transparent;
+    cursor: url('images/cursor-brush.cur'), auto;
 }
 
 #upload-image-position-selector {
