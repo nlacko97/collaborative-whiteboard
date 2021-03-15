@@ -251,6 +251,7 @@ window.onload = function () {
     var imageLoader = document.getElementById('imageLoader');
     imageLoader.addEventListener('change', function (e) {
         var uploadImagePositionSelector = document.createElement("div");
+        uploadImagePositionSelector.innerText = "Please click on the board on the position where you would like to display your image (you are selecting the upper left corner of the image):";
         uploadImagePositionSelector.id = "upload-image-position-selector";
         uploadImagePositionSelector.addEventListener('click', function (clickEvent) {
             var reader = new FileReader();

@@ -23,6 +23,7 @@ body {
     align-items: center;
     border: 2px solid grey;
     margin: 1rem 5rem;
+    width: 1300px;
 }
 
 .tool > a {
@@ -69,6 +70,7 @@ a.selected {
     width: 1000px;
     height: 500px;
     background-color: rgba(0, 0, 0, 0.3);
+    font-size: 50px;
 }
 
 #initial-state,
