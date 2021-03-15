@@ -89,19 +89,21 @@ button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
 }
 
-#confirm-dialog {
-    display: none;
+.confirm-dialog {
+    display: block;
+    z-index: 9999;
     background: linear-gradient(to right, rgba(171, 255, 205, 1), rgba(171, 255, 242, 1));
     border: 1px solid #aaa;
     position: fixed;
     width: 400px;
     left: 50%;
     margin-left: -200px;
+    top: 10px;
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
  }
- #confirm-dialog button {
+ .confirm-dialog button {
     background-color: #48E5DA;
     display: inline-block;
     border-radius: 5px;
@@ -111,7 +113,7 @@ button:hover {
     width: 80px;
     cursor: pointer;
  }
- #confirm-dialog .message {
+ .confirm-dialog .message {
     text-align: center;
  }
 #whiteboard > button:hover {
