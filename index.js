@@ -31,16 +31,6 @@ MongoClient.connect(uri, {
                 accepted: data.accepted
             })
         })
-        socket.on('move-sticky-note', (message) => {
-            console.log("Received sticky note moved message on server");
-            console.log(message);
-            //TODO process message, add it to history, etc.
-            socket.broadcast.emit("broadcast", {
-                type: 'move-sticky-note',
-                id: message.id,
-                position: message.position
-            });
-        });
 
         socket.on('freehand-drawing', (message) => {
 
@@ -72,6 +62,30 @@ MongoClient.connect(uri, {
             });
         });
 
+        socket.on('new-sticky-note', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'new-sticky-note',
+                author: message.author,
+                stickyNoteId: message.stickyNoteId
+            });
+        });
+
+        socket.on('edit-sticky-note', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'edit-sticky-note',
+                stickyNoteId: message.stickyNoteId,
+                newText: message.newText
+            });
+        });
+
+        socket.on('move-sticky-note', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'move-sticky-note',
+                stickyNoteId: message.stickyNoteId,
+                top: message.top,
+                left: message.left
+            });
+        });
     }
 
     /**

@@ -10,17 +10,15 @@
     <title>Collaborative Whiteboard</title>
 </head>
 
-<body>
+<body id="myBody">
     <div id="confirm-dialog">
         <div class="message"></div>
         <button class="yes">Yes</button>
         <button class="no">No</button>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
-        integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
     <div class="title">
         <h4>
-            Collaborative Whiteboard application
+            <span>Collaborative Whiteboard application</span>
         </h4>
     </div>
     <div class="tools-list">
@@ -41,7 +39,7 @@
         </div>
         <div class="tool">
             <a href="#" title="Sticky note">
-                <i class="ri-sticky-note-line"></i>
+                <i class="ri-sticky-note-line" id="sticky-note"></i>
             </a>
         </div>
         <div class="tool">
@@ -70,13 +68,14 @@
         <i class="ri-remote-control-line"></i> waiting to join session ...
     </div>
     <button id="end-session">End session</button>
-    <!-- <button id="move_sticky_note">Move sticky note</button> -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="./client.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"
+            integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
 </body>
 
 </html>

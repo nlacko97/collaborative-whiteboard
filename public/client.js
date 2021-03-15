@@ -1,10 +1,26 @@
 const notyf = new Notyf();
 
+// Sticky note use cases variables
+var stickyNoteBeingMoved = null;
+var initialTop = 0;
+var initialLeft = 0;
+var initialBottom = 0;
+var initialRight = 0;
+var globalTopDifference = 0;
+var globalLeftDifference = 0;
+var globalBottomDifference = 0;
+var globalRightDifference = 0;
+var canvasTop = 0;
+var canvasLeft = 0;
+var canvasBottom = 0;
+var canvasRight = 0;
+
 window.onload = function () {
     var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
     console.log(encrypted.toString());
     var decrypted = CryptoJS.AES.decrypt(encrypted, "Secret Passphrase");
     console.log(decrypted.toString(CryptoJS.enc.Utf8))
+
 
     // Definitions
     var canvas = document.getElementById("canvas");
@@ -13,6 +29,7 @@ window.onload = function () {
     var contextBackground = canvasBackground.getContext("2d");
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
+    var sticky_note_id_counter = 0;
     let $initialStateDiv = $("#initial-state");
     let $loadingStateDiv = $("#loading-state");
     let $whiteboardDiv = $("#whiteboard");
@@ -30,7 +47,7 @@ window.onload = function () {
 
     let newSessionButton = document.getElementById('new-session');
     let endSessionButton = document.getElementById('end-session');
-    let moveStickyNoteButton = document.getElementById('move_sticky_note');
+
     let socket = io();
 
     socket.on('connect', () => {
@@ -39,7 +56,6 @@ window.onload = function () {
 
     socket.on('new-client-request', (data, callback) => {
         console.log("host user got a new connection request from a new client");
-        console.log(data);
         // let accepted = confirm(`Would you like to accept a new user ${data.connectionId} to the session?`);
         var confirmBox = $("#confirm-dialog");
             confirmBox.find(".message").text(`Would you like to accept a new user ${data.connectionId} to the session?`);
@@ -93,23 +109,8 @@ window.onload = function () {
             }
         });
 
-        //now listen for other stuff
-
-        // moveStickyNoteButton.addEventListener('click', () => {
-        //     socket.emit('move-sticky-note', {
-        //         connectionId: socket.id,
-        //         id: "test_id",
-        //         position: 22.35
-
-        //     });
-        //     console.log("sending move sticky note request");
-        // })
-
         socket.on('broadcast', (message) => {
             switch (message.type) {
-                case 'move-sticky-note':
-                    console.log("Sticky note moved");
-                    break;
                 case 'freehand-drawing':
                     context.beginPath();
                     // Set brush size and color
@@ -134,6 +135,31 @@ window.onload = function () {
                         contextBackground.drawImage(img, message.startX, message.startY);
                     }
                     img.src = message.imageSrc;
+                    break;
+                case 'new-sticky-note':
+                    var $stickyNote = $(
+                    '<div id="' + message.stickyNoteId +'" class="sticky-note">' +
+                        '<div>Created by:<br/>' + message.author + '</div>' +
+                        '<div class="textarea" contenteditable></div>' +
+                    '</div>'
+                    );
+                    $("#whiteboard").append($stickyNote);
+
+                    // Add event listeners for moving sticky note
+                    setMoveStickyNoteListeners($stickyNote, socket);
+
+                    // Add event listeners for editing sticky note
+                    setEditStickyNoteListeners($stickyNote, socket);
+                    break;
+                case 'edit-sticky-note':
+                    var $stickyNote = $("#" + message.stickyNoteId);
+                    $stickyNote.find(".textarea").get(0).innerText = message.newText;
+                    setMoveStickyNoteListeners($stickyNote, socket);
+                    setEditStickyNoteListeners($stickyNote, socket);
+                    break;
+                case 'move-sticky-note':
+                    var $stickyNote = $("#" + message.stickyNoteId);
+                    $stickyNote.css({top: message.top, left: message.left});
                     break;
                 default:
                     console.log("Unknown broadcast message type");
@@ -167,8 +193,6 @@ window.onload = function () {
                 context.globalCompositeOperation="source-over";
                 // Draw line segment
                 context.moveTo(lastEvent.offsetX, lastEvent.offsetY);
-                                    console.log(lastEvent.offsetX);
-                                    console.log(lastEvent.offsetY);
                 context.lineTo(event.offsetX, event.offsetY);
                 context.stroke();
                 // Emit drawing event
@@ -262,5 +286,134 @@ window.onload = function () {
 
         var whiteboardDivContainer = document.getElementById("whiteboard");
         whiteboardDivContainer.appendChild(uploadImagePositionSelector);
+    });
+
+    $("#sticky-note").click(function(lastEvent) {
+        sticky_note_id_counter += 1;
+        var sticky_note_id = String(socket.id) + '-' + String(sticky_note_id_counter);
+
+        // Add empty sticky note to top-left corner of the board
+        var $stickyNote = $(
+        '<div id="' + sticky_note_id +'" class="sticky-note">' +
+            '<div>Created by:<br/>' + socket.id + '</div>' +
+            '<div class="textarea" contenteditable></div>' +
+        '</div>'
+        );
+        $("#whiteboard").append($stickyNote);
+
+        // Add event listeners for moving sticky note
+        setMoveStickyNoteListeners($stickyNote, socket);
+
+        // Add event listeners for editing sticky note
+        setEditStickyNoteListeners($stickyNote, socket);
+
+        // Broadcast the addition of the sticky note
+        socket.emit('new-sticky-note', {
+            author: socket.id,
+            stickyNoteId: sticky_note_id
+        });
+    });
+}
+
+function setMoveStickyNoteListeners($stickyNote, socket) {
+    $stickyNote.mousedown(moveStickyNoteMouseDown);
+
+    function setGlobalVariables(object) {
+        stickyNoteBeingMoved = object;
+        initialTop = object.position().top;
+        initialLeft = object.position().left;
+        initialBottom = object.position().top + object.height();
+        initialRight = object.position().left + object.width();
+        var mouseX = event.pageX;
+        var mouseY = event.pageY;
+        globalTopDifference = mouseY - initialTop;
+        globalLeftDifference = mouseX - initialLeft;
+        globalBottomDifference = initialBottom - mouseY;
+        globalRightDifference = initialRight - mouseX;
+        canvasTop = $("#canvas").position().top;
+        canvasLeft = $("#canvas").position().left;
+        canvasBottom = $("#canvas").position().top + $("#canvas").height();
+        canvasRight = $("#canvas").position().left + $("#canvas").width();
+    }
+
+
+    function moveStickyNoteMouseDown(event) {
+        setGlobalVariables($(this));
+        $(this).css("zIndex", 200);
+        $(this).mousemove(moveStickyNoteMouseMove);
+        $("#myBody").mousemove(myBodyMouseMove)
+    }
+
+    function moveStickyNoteMouseMove(event) {
+        doWhenMouseMoved();
+        $(this).off("mouseup");
+        $(this).mouseup(myOnMouseUp);
+    }
+
+
+    function myOnMouseUp(event) {
+        $(this).off("mousemove");
+        $(this).off("mouseup");
+        $(this).css("zIndex", 1);
+    }
+
+    function doWhenMouseMoved() {
+        var mouseX = event.pageX;
+        var mouseY = event.pageY;
+        var stickyNoteBottom = stickyNoteBeingMoved.position().top + stickyNoteBeingMoved.height();
+        var stickyNoteRight = stickyNoteBeingMoved.position().left + stickyNoteBeingMoved.width();
+
+        var top = mouseY - globalTopDifference;
+        var left = mouseX - globalLeftDifference;
+        var bottom = mouseY + globalBottomDifference;
+        var right = mouseX + globalRightDifference;
+
+        if (top <= canvasTop) {
+            top = canvasTop;
+        }
+        if (left <= canvasLeft) {
+            left = canvasLeft;
+        }
+        if (bottom >= canvasBottom) {
+            top = canvasBottom - stickyNoteBeingMoved.height();
+        }
+        if (right >= canvasRight) {
+            left = canvasRight - stickyNoteBeingMoved.width();
+        }
+        stickyNoteBeingMoved.css({top: top, left: left});
+
+        // Broadcast sticky note movement
+        socket.emit('move-sticky-note', {
+            stickyNoteId: stickyNoteBeingMoved.attr('id'),
+            top: top,
+            left: left
+        });
+    }
+
+
+    function myBodyMouseMove(event) {
+        doWhenMouseMoved(stickyNoteBeingMoved);
+        stickyNoteBeingMoved.off("mouseup");
+        stickyNoteBeingMoved.mouseup(myOnMouseUp);
+        $(this).off("mouseup");
+        $(this).mouseup(myBodyMouseUp);
+    }
+
+    function myBodyMouseUp(event) {
+        stickyNoteBeingMoved.off("mousemove");
+        stickyNoteBeingMoved.off("mouseup");
+        stickyNoteBeingMoved.css("zIndex", 1);
+        $(this).off("mousemove");
+        $(this).off("mouseup");
+    }
+}
+
+function setEditStickyNoteListeners($stickyNote, socket) {
+    $stickyNote.on('input', function(event) {
+        // Broadcast the addition of the sticky note
+        socket.emit('edit-sticky-note', {
+            stickyNoteId: $stickyNote.attr('id'),
+            newText: event.target.innerText
+        });
     });
 }
