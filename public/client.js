@@ -359,20 +359,25 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         setGlobalVariables($(this));
         $(this).css("zIndex", 200);
         $(this).mousemove(moveStickyNoteMouseMove);
-        $("#myBody").mousemove(myBodyMouseMove)
+        $("#myBody").mousemove(myBodyMouseMove);
+        stickyNoteBeingMoved.off("mouseup");
+        stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
+        $("#myBody").off("mouseup");
+        $("#myBody").mouseup(myBodyMouseUp);
     }
 
     function moveStickyNoteMouseMove(event) {
         doWhenMouseMoved();
         $(this).off("mouseup");
-        $(this).mouseup(myOnMouseUp);
+        $(this).mouseup(moveStickyNoteMouseUp);
     }
-
-
-    function myOnMouseUp(event) {
-        $(this).off("mousemove");
+    
+    function myBodyMouseMove(event) {
+        doWhenMouseMoved(stickyNoteBeingMoved);
+        stickyNoteBeingMoved.off("mouseup");
+        stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
         $(this).off("mouseup");
-        $(this).css("zIndex", 1);
+        $(this).mouseup(myBodyMouseUp);
     }
 
     function doWhenMouseMoved() {
@@ -408,13 +413,10 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         });
     }
 
-
-    function myBodyMouseMove(event) {
-        doWhenMouseMoved(stickyNoteBeingMoved);
-        stickyNoteBeingMoved.off("mouseup");
-        stickyNoteBeingMoved.mouseup(myOnMouseUp);
+    function moveStickyNoteMouseUp(event) {
+        $(this).off("mousemove");
         $(this).off("mouseup");
-        $(this).mouseup(myBodyMouseUp);
+        $(this).css("zIndex", 1);
     }
 
     function myBodyMouseUp(event) {
