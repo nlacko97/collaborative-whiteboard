@@ -32,6 +32,12 @@ html, body {
 
 .tool > a:hover {
     text-shadow: 2px 2px 2px #b8b6b6;
+    font-size: xx-large;
+}
+
+a.selected {
+    color: rgb(64, 134, 124);
+    font-size: xx-large;
 }
 
 #whiteboard {
@@ -54,6 +60,7 @@ html, body {
 
 #canvas {
     background: transparent;
+    cursor: url('images/cursor-brush.cur'), auto;
 }
 
 #upload-image-position-selector {
@@ -85,19 +92,21 @@ button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
 }
 
-#confirm-dialog {
-    display: none;
+.confirm-dialog {
+    display: block;
+    z-index: 9999;
     background: linear-gradient(to right, rgba(171, 255, 205, 1), rgba(171, 255, 242, 1));
     border: 1px solid #aaa;
     position: fixed;
     width: 400px;
     left: 50%;
     margin-left: -200px;
+    top: 10px;
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
  }
- #confirm-dialog button {
+ .confirm-dialog button {
     background-color: #48E5DA;
     display: inline-block;
     border-radius: 5px;
@@ -107,7 +116,7 @@ button:hover {
     width: 80px;
     cursor: pointer;
  }
- #confirm-dialog .message {
+ .confirm-dialog .message {
     text-align: center;
  }
 #whiteboard > button:hover {

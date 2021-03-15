@@ -37,6 +37,9 @@ window.onload = function () {
     $loadingStateDiv.hide();
     $whiteboardDiv.hide();
     $toolsListDiv.hide();
+    let $brushLink = $("#brush");
+    let $eraserLink = $("#eraser");
+
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -50,34 +53,55 @@ window.onload = function () {
 
     let socket = io();
 
+    $($brushLink).on('click', () => {
+        mode = "brush";
+        $($brushLink).addClass("selected");
+        $($eraserLink).removeClass("selected");
+        $(canvas).css("cursor", "url('images/cursor-brush.cur'), auto");
+    })
+
+    $($eraserLink).on('click', () => {
+        mode = "eraser";
+        $($eraserLink).addClass("selected");
+        $($brushLink).removeClass("selected");
+        $(canvas).css("cursor", "url('images/cursor-eraser.cur'), auto");
+    })
+
     socket.on('connect', () => {
         console.log("connection id: " + socket.id);
     })
 
-    socket.on('new-client-request', (data, callback) => {
+    socket.on('new-client-request', (data) => {
         console.log("host user got a new connection request from a new client");
-        // let accepted = confirm(`Would you like to accept a new user ${data.connectionId} to the session?`);
-        var confirmBox = $("#confirm-dialog");
-            confirmBox.find(".message").text(`Would you like to accept a new user ${data.connectionId} to the session?`);
-            confirmBox.find(".yes,.no").unbind().click(function() {
-               confirmBox.hide();
-            });
-            confirmBox.find(".yes").click(() => {
-                socket.emit('new-client-request-decision', {
-                    hostId: socket.id,
-                    accepted: true,
-                    clientId: data.connectionId
-                })
-            });
-            confirmBox.find(".no").click(() => {
-                socket.emit('new-client-request-decision', {
-                    hostId: socket.id,
-                    accepted: false,
-                    clientId: data.connectionId
-                })
-            });
-            confirmBox.show();
-        
+        console.log(data);
+        $("body").append("<div class=\"confirm-dialog confirm-dialog-" + data.connectionId + "\"></div>")
+        var confirmBox = $(`.confirm-dialog-${data.connectionId}`);
+        $(confirmBox).append("<div class=\"message message-" + data.connectionId + "\"></div>");
+        var msg = $(`.message-${data.connectionId}`);
+        $(msg).text(`Would you like to accept a new user ${data.connectionId} to the session?`);
+        $(confirmBox).append(`<button id="yes-${data.connectionId}">Yes</button>`);
+        var yes = $(`#yes-${data.connectionId}`);
+        $(confirmBox).append(`<button id="no-${data.connectionId}">No</button>`);
+        var no = $(`#no-${data.connectionId}`);
+        $(confirmBox).find(`#yes-${data.connectionId}, #no-${data.connectionId}`).unbind().click(() => {
+            confirmBox.remove();
+        })
+        $(yes).on('click', () => {
+            socket.emit('new-client-request-decision', {
+                hostId: socket.id,
+                accepted: true,
+                clientId: data.connectionId
+            })
+            notyf.success(`Accepted user ${data.connectionId} to the session!`);
+        })
+        $(no).on('click', () => {
+            socket.emit('new-client-request-decision', {
+                hostId: socket.id,
+                accepted: false,
+                clientId: data.connectionId
+            })
+            notyf.error(`Denied access for user ${data.connectionId} to the session!`);
+        })
     })
 
     socket.on("new-client-request-decision", (data) => {
@@ -117,7 +141,7 @@ window.onload = function () {
                     context.strokeStyle = 'black';
                     context.lineWidth = 1;
                     // Set composite operation to drawing over
-                    context.globalCompositeOperation="source-over";
+                    context.globalCompositeOperation = "source-over";
                     // Draw line segment
                     context.moveTo(message.moveToX, message.moveToY);
                     context.lineTo(message.lineToX, message.lineToY);
@@ -126,12 +150,12 @@ window.onload = function () {
                 case 'erase':
                     context.beginPath();
                     context.globalCompositeOperation = 'destination-out';
-                    context.arc(message.arcX, message.arcY, 20, 0, Math.PI*2, false);
+                    context.arc(message.arcX, message.arcY, 20, 0, Math.PI * 2, false);
                     context.fill();
                     break;
                 case 'image-upload':
                     var img = new Image();
-                    img.onload = function() {
+                    img.onload = function () {
                         contextBackground.drawImage(img, message.startX, message.startY);
                     }
                     img.src = message.imageSrc;
@@ -182,7 +206,7 @@ window.onload = function () {
     });
 
     // Mouse Move Event
-    canvas.addEventListener('mousemove', function(event) {
+    canvas.addEventListener('mousemove', function (event) {
         if (isMousePressed) {
             context.beginPath();
             if (mode === "brush") {
@@ -190,7 +214,7 @@ window.onload = function () {
                 context.strokeStyle = 'black';
                 context.lineWidth = 1;
                 // Set composite operation to drawing over
-                context.globalCompositeOperation="source-over";
+                context.globalCompositeOperation = "source-over";
                 // Draw line segment
                 context.moveTo(lastEvent.offsetX, lastEvent.offsetY);
                 context.lineTo(event.offsetX, event.offsetY);
@@ -204,7 +228,7 @@ window.onload = function () {
                 });
             } else if (mode === "eraser") {
                 context.globalCompositeOperation = 'destination-out';
-                context.arc(lastEvent.offsetX, lastEvent.offsetY, 20, 0, Math.PI*2, false);
+                context.arc(lastEvent.offsetX, lastEvent.offsetY, 20, 0, Math.PI * 2, false);
                 context.fill();
                 // Emit erase event
                 socket.emit('erase', {
@@ -217,29 +241,23 @@ window.onload = function () {
     });
 
     // Mouse Up Event
-    canvas.addEventListener('mouseup', function(event) {
+    canvas.addEventListener('mouseup', function (event) {
         isMousePressed = false;
     });
 
-    document.getElementById('brush').addEventListener('click', function(event) {
-        mode = "brush";
-    });
 
-    document.getElementById('eraser').addEventListener('click', function(event) {
-        mode = "eraser";
-    });
 
     // Upload image to board
     var imageLoader = document.getElementById('imageLoader');
-    imageLoader.addEventListener('change', function(e) {
+    imageLoader.addEventListener('change', function (e) {
         var uploadImagePositionSelector = document.createElement("div");
         uploadImagePositionSelector.id = "upload-image-position-selector";
-        uploadImagePositionSelector.addEventListener('click', function(clickEvent) {
+        uploadImagePositionSelector.addEventListener('click', function (clickEvent) {
             var reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 const imageBytes = new Uint8Array(this.result);
                 var img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     // Get coordinates of upper left corner (from where the image will start)
                     var rect = clickEvent.target.getBoundingClientRect();
                     var startX = clickEvent.clientX - rect.left;
@@ -248,16 +266,16 @@ window.onload = function () {
                     // Save image initial size
                     var imgWidth = img.width;
                     var imgHeight = img.height;
-                    var widthToHeightRation = imgWidth/imgHeight;
+                    var widthToHeightRation = imgWidth / imgHeight;
 
                     // Resize image so that neither width nor height takes more than 50% of the whiteboard, but still keep the width to height proportions
-                    if (imgWidth > canvasWidth/2) {
-                        imgWidth = canvasWidth/2;
-                        imgHeight = imgWidth/widthToHeightRation;
+                    if (imgWidth > canvasWidth / 2) {
+                        imgWidth = canvasWidth / 2;
+                        imgHeight = imgWidth / widthToHeightRation;
                     }
-                    if (imgHeight > canvasHeight/2) {
-                        imgHeight = canvasHeight/2;
-                        imgWidth = imgHeight*widthToHeightRation;
+                    if (imgHeight > canvasHeight / 2) {
+                        imgHeight = canvasHeight / 2;
+                        imgWidth = imgHeight * widthToHeightRation;
                     }
 
                     var tempCanvas = document.createElement('CANVAS');
