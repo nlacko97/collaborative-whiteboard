@@ -342,8 +342,8 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         initialLeft = object.position().left;
         initialBottom = object.position().top + object.height();
         initialRight = object.position().left + object.width();
-        var mouseX = event.pageX;
-        var mouseY = event.pageY;
+        var mouseX = event.clientX;
+        var mouseY = event.clientY;
         globalTopDifference = mouseY - initialTop;
         globalLeftDifference = mouseX - initialLeft;
         globalBottomDifference = initialBottom - mouseY;
@@ -376,8 +376,8 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
     }
 
     function doWhenMouseMoved() {
-        var mouseX = event.pageX;
-        var mouseY = event.pageY;
+        var mouseX = event.clientX;
+        var mouseY = event.clientY;
         var stickyNoteBottom = stickyNoteBeingMoved.position().top + stickyNoteBeingMoved.height();
         var stickyNoteRight = stickyNoteBeingMoved.position().left + stickyNoteBeingMoved.width();
 
@@ -387,16 +387,16 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         var right = mouseX + globalRightDifference;
 
         if (top <= canvasTop) {
-            top = canvasTop;
+            top = canvasTop + 20;
         }
         if (left <= canvasLeft) {
-            left = canvasLeft;
+            left = canvasLeft + 20;
         }
         if (bottom >= canvasBottom) {
-            top = canvasBottom - stickyNoteBeingMoved.height();
+            top = canvasBottom - stickyNoteBeingMoved.height() - 20;
         }
         if (right >= canvasRight) {
-            left = canvasRight - stickyNoteBeingMoved.width();
+            left = canvasRight - stickyNoteBeingMoved.width() - 20;
         }
         stickyNoteBeingMoved.css({top: top, left: left});
 

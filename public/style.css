@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
     font-family: sans-serif;
     background: linear-gradient(to bottom right, rgb(240, 255, 246), #e9e9e9);
     margin: 0;
@@ -48,7 +49,7 @@ a.selected {
     width: 1010px;
 }
 
-#whiteboard > canvas  {
+#whiteboard > canvas {
     position: absolute;
     border: 2px solid grey;
 }
@@ -57,10 +58,9 @@ a.selected {
     background-color: white;
 }
 
-
 #canvas {
     background: transparent;
-    cursor: url('images/cursor-brush.cur'), auto;
+    cursor: url("images/cursor-brush.cur"), auto;
 }
 
 #upload-image-position-selector {
@@ -68,10 +68,11 @@ a.selected {
     border: 2px solid grey;
     width: 1000px;
     height: 500px;
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
-#initial-state, #loading-state {
+#initial-state,
+#loading-state {
     display: flex;
     justify-content: center;
 }
@@ -105,9 +106,9 @@ button:hover {
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
- }
- .confirm-dialog button {
-    background-color: #48E5DA;
+}
+.confirm-dialog button {
+    background-color: #48e5da;
     display: inline-block;
     border-radius: 5px;
     border: 1px solid #aaa;
@@ -115,33 +116,44 @@ button:hover {
     text-align: center;
     width: 80px;
     cursor: pointer;
- }
- .confirm-dialog .message {
+}
+.confirm-dialog .message {
     text-align: center;
- }
+}
 #whiteboard > button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
 }
 
 #imageLoader {
-    display: none
+    display: none;
 }
 
 .sticky-note {
     position: absolute;
-    background-color: yellow;
+    background: #ffc;
     font-size: 10px;
-    width: 150px
+    width: 150px;
+    padding: 10px;
+    font-size: 1rem;
+    box-shadow: 3px 3px 5px rgba(88,88,88,.2);
+    font-family: "Reenie Beanie";
+    cursor: move;
+    /* backface-visibility: hidden; */
 }
 
 .textarea {
-    background-color: yellow;
+    background: #ffc;
     -moz-appearance: textfield-multiline;
     -webkit-appearance: textarea;
-    border: 1px solid gray;
-    font: medium -moz-fixed;
-    font: -webkit-small-control;
+    font-size: 1.3rem;
+    /* border: 1px solid gray; */
+    /* font: medium -moz-fixed;
+    font: -webkit-small-control; */
     overflow: auto;
     width: 150px;
-    height: 75px;
+    height: 90px;
+    border-top: 0.5px solid rgba(87, 87, 87, 0.1);
+    margin-top: 5px;
+    padding-top: 2px;
+    cursor: text;
 }
