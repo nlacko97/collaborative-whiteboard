@@ -16,7 +16,12 @@ MongoClient.connect(uri, {
     if (err) throw err;
     let dbo = db.db(process.env.DB_DATABASE);
     console.log("Connected to database");
-
+    dbo.collection('operations').countDocuments((err, count) => {
+        if (err) throw err;
+        if (count) {
+            dbo.collection('operations').drop((err) => {if (err) throw err;});
+        }
+    })
     app.use(express.static(__dirname + '/public'));
 
     function onConnection(socket) {
@@ -43,6 +48,25 @@ MongoClient.connect(uri, {
             });
         });
 
+        socket.on('new-move', (data, callback) => {
+            let newMove = {
+                userId: data.userId,
+                moves: data.moves
+            }
+            dbo.collection('operations').insertOne(newMove, (err, records) => {
+                if (err) throw err;
+                socket.broadcast.emit("broadcast", {
+                    type: "new-move",
+                    moveId: records.ops[0]._id,
+                    moves: newMove.moves,
+                    userId: newMove.userId
+                })
+                callback({
+                    moveId: records.ops[0]._id
+                })
+            })
+        });
+
         socket.on('erase', (message) => {
             socket.broadcast.emit("broadcast", {
                 type: 'erase',
@@ -52,9 +76,14 @@ MongoClient.connect(uri, {
         });
 
         socket.on('undo', (data) => {
+            // DELETE FROM DATABASE
+            dbo.collection('operations').deleteOne({moveId: data.moveId}, (err, res) => {
+                if (err) throw err;
+                console.log("session ended");
+            })
             socket.broadcast.emit("broadcast", {
                 type: 'undo',
-                newState: data.newState
+                moveId: data.moveId
             })
         })
 
