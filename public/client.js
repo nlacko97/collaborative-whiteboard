@@ -15,6 +15,9 @@ var canvasLeft = 0;
 var canvasBottom = 0;
 var canvasRight = 0;
 
+// Global definitions
+var id_counter = 0;
+
 window.onload = function () {
     var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
     console.log(encrypted.toString());
@@ -29,7 +32,6 @@ window.onload = function () {
     var contextBackground = canvasBackground.getContext("2d");
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
-    var id_counter = 0;
     let $initialStateDiv = $("#initial-state");
     let $loadingStateDiv = $("#loading-state");
     let $whiteboardDiv = $("#whiteboard");
@@ -158,56 +160,10 @@ window.onload = function () {
                 case 'image-upload':
                     var img = new Image();
                     img.onload = function () {
+                        // Draw image on canvas
                         contextBackground.drawImage(img, message.startX, message.startY);
-                        // Add "show comments" button and comment container
-                        var $showCommentsButton = $(
-                            '<button class="show-comments-button">Show comments</button>'
-                        );
-                        $("#whiteboard").append($showCommentsButton);
-                        $showCommentsButton.css({top: canvasTop + message.startY, left: canvasLeft + message.startX});
 
-                        var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
-                        var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
-                        var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
-                        var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
-                        $commentsInnerContainer.attr('id', message.commentContainerId);
-                        var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
-                        $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
-                        $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
-                        $("#image-comments-pannel").append($commentsOuterContainer);
-
-                        $showCommentsButton.click(function () {
-                            $("#image-comments-pannel").find('.comments-outer-container').each(function () {
-                                $(this).hide();
-                            });
-                            $commentsOuterContainer.show();
-                        });
-
-                        $hideCommentsButton.click(function () {
-                            $commentsOuterContainer.hide();
-                        });
-
-                        $addCommentButton.click(function () {
-                            id_counter += 1;
-                            var comment_id = String(socket.id) + '-' + String(id_counter);
-                            var $comment = $(
-                            '<div id="' + comment_id +'" class="image-comment">' +
-                                '<div>Created by:<br/>' + socket.id + '</div>' +
-                                '<div class="textarea" contenteditable></div>' +
-                            '</div>'
-                            );
-                            $commentsInnerContainer.append($comment);
-
-                            // Add event listeners for editing image comment
-                            setEditImageCommentListeners($comment, socket);
-
-                            // Broadcast the addition of the sticky note
-                            socket.emit('new-image-comment', {
-                                author: socket.id,
-                                commentId: comment_id,
-                                commentContainerId: message.commentContainerId
-                            });
-                        });
+                        createImageCommentsContainers(message.commentContainerId, message.startY, message.startX, socket);
                     }
                     img.src = message.imageSrc;
                     break;
@@ -344,61 +300,15 @@ window.onload = function () {
                     tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
                     dataUrl = tempCanvas.toDataURL();
 
-                    // Draw image on canvas
-                    contextBackground.drawImage(img, startX, startY, imgWidth, imgHeight);
+                    // Remove position selector grey div
                     uploadImagePositionSelector.remove();
 
-                    // Add "show comments" button and comment container
-                    var $showCommentsButton = $(
-                        '<button class="show-comments-button">Show comments</button>'
-                    );
-                    $("#whiteboard").append($showCommentsButton);
-                    $showCommentsButton.css({top: canvasTop + startY, left: canvasLeft + startX});
+                    // Draw image on canvas
+                    contextBackground.drawImage(img, startX, startY, imgWidth, imgHeight);
 
-                    var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
-                    var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
-                    var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
-                    var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
                     id_counter += 1;
                     var comment_container_id = String(socket.id) + '-' + String(id_counter);
-                    $commentsInnerContainer.attr('id', comment_container_id);
-                    var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
-                    $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
-                    $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
-                    $("#image-comments-pannel").append($commentsOuterContainer);
-
-                    $showCommentsButton.click(function () {
-                        $("#image-comments-pannel").find('.comments-outer-container').each(function () {
-                            $(this).hide();
-                        });
-                        $commentsOuterContainer.show();
-                    });
-
-                    $hideCommentsButton.click(function () {
-                        $commentsOuterContainer.hide();
-                    });
-                    
-                    $addCommentButton.click(function () {
-                        id_counter += 1;
-                        var comment_id = String(socket.id) + '-' + String(id_counter);
-                        var $comment = $(
-                        '<div id="' + comment_id +'" class="image-comment">' +
-                            '<div>Created by:<br/>' + socket.id + '</div>' +
-                            '<div class="textarea" contenteditable></div>' +
-                        '</div>'
-                        );
-                        $commentsInnerContainer.append($comment);
-
-                        // Add event listeners for editing image comment
-                        setEditImageCommentListeners($comment, socket);
-
-                        // Broadcast the addition of the sticky note
-                        socket.emit('new-image-comment', {
-                            author: socket.id,
-                            commentId: comment_id,
-                            commentContainerId: comment_container_id
-                        });
-                    });
+                    createImageCommentsContainers(comment_container_id, startY, startX, socket);
 
                     // Broadcast image
                     socket.emit('image-upload', {
@@ -418,7 +328,7 @@ window.onload = function () {
         whiteboardDivContainer.appendChild(uploadImagePositionSelector);
     });
 
-    $("#sticky-note").click(function(lastEvent) {
+    $("#sticky-note").click(function() {
         id_counter += 1;
         var sticky_note_id = String(socket.id) + '-' + String(id_counter);
 
@@ -568,4 +478,58 @@ function addNewStickyNote (stickyNoteId, author, socket) {
     setEditStickyNoteListeners($stickyNote, socket);
 }
 
-//TODO add listener for broadcasted "add comment" button + implement edit image comment broadcast + extract into different functions if duplicates
+function createImageCommentsContainers (commentContainerId, startY, startX, socket) {
+    // Add "show comments" button and comment container
+    var $showCommentsButton = $(
+        '<button class="show-comments-button">Show comments</button>'
+    );
+    $("#whiteboard").append($showCommentsButton);
+    $showCommentsButton.css({top: canvasTop + startY, left: canvasLeft + startX});
+
+    var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
+    var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
+    var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
+    var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+    $commentsInnerContainer.attr('id', commentContainerId);
+    var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
+    $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
+    $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
+    $("#image-comments-pannel").append($commentsOuterContainer);
+
+    $showCommentsButton.click(function () {
+        $("#image-comments-pannel").find('.comments-outer-container').each(function () {
+            $(this).hide();
+        });
+        $commentsOuterContainer.show();
+    });
+
+    $hideCommentsButton.click(function () {
+        $commentsOuterContainer.hide();
+    });
+
+    addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, commentContainerId, socket);
+}
+
+function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, comment_container_id, socket) {
+    $addCommentButton.click(function () {
+        id_counter += 1;
+        var comment_id = String(socket.id) + '-' + String(id_counter);
+        var $comment = $(
+        '<div id="' + comment_id +'" class="image-comment">' +
+            '<div>Created by:<br/>' + socket.id + '</div>' +
+            '<div class="textarea" contenteditable></div>' +
+        '</div>'
+        );
+        $commentsInnerContainer.append($comment);
+
+        // Add event listeners for editing image comment
+        setEditImageCommentListeners($comment, socket);
+
+        // Broadcast the addition of the sticky note
+        socket.emit('new-image-comment', {
+            author: socket.id,
+            commentId: comment_id,
+            commentContainerId: comment_container_id
+        });
+    });
+}
