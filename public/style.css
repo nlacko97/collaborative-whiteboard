@@ -47,7 +47,7 @@ a.selected {
     flex-direction: column;
     margin: 1rem 5rem;
     height: 510px;
-    width: 1010px;
+    width: 1302px;
 }
 
 #whiteboard > canvas {
@@ -158,4 +158,61 @@ button:hover {
     margin-top: 5px;
     padding-top: 2px;
     cursor: text;
+}
+
+#image-comments-pannel {
+    height: 500px;
+    width: 280px;
+    margin-left: auto;
+    order: 2;
+}
+
+#image-comments-pannel > .comments-outer-container {
+   position: absolute;
+   border: 2px solid grey;
+   height: 500px;
+   width: 280px;
+   overflow: scroll;
+   display: none;
+}
+
+.show-comments-button {
+    position: absolute;
+    border-radius: 20px;
+    border: 2px solid grey;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    color: rgb(27, 106, 109);
+    font-weight: 600;
+    font-size: 10px;
+    background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
+    cursor: pointer;
+}
+
+.comment-button {
+    border-radius: 20px;
+    border: 2px solid grey;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    color: rgb(27, 106, 109);
+    font-weight: 600;
+    font-size: 10px;
+    background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
+    cursor: pointer;
+    height: 20px;
+    width: 50%;
+}
+
+.image-comment {
+    background-color: #6495ED;
+    font-size: 10px;
+    width: 150px;
+    padding: 10px;
+    font-size: 1rem;
+    box-shadow: 3px 3px 5px rgba(88,88,88,.2);
+    font-family: "Reenie Beanie";
+    cursor: move;
+    /* backface-visibility: hidden; */
 }

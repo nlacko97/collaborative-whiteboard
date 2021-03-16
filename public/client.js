@@ -101,14 +101,15 @@ window.onload = function () {
                 clientId: data.connectionId
             })
             notyf.error(`Denied access for user ${data.connectionId} to the session!`);
-        })
-    })
+        });
+    });
 
     socket.on("new-client-request-decision", (data) => {
         if (data.accepted == true) {
             $loadingStateDiv.hide();
             $whiteboardDiv.show();
             $toolsListDiv.show();
+            setCanvasCoordinates();
             notyf.success("Successfully joined session!");
         } else {
             $loadingStateDiv.hide();
@@ -129,6 +130,7 @@ window.onload = function () {
                 $loadingStateDiv.hide();
                 $whiteboardDiv.show();
                 $toolsListDiv.show();
+                setCanvasCoordinates();
                 notyf.success("Successfully joined session!");
             }
         });
@@ -157,6 +159,32 @@ window.onload = function () {
                     var img = new Image();
                     img.onload = function () {
                         contextBackground.drawImage(img, message.startX, message.startY);
+                        // Add "show comments" button and comment container
+                        var $showCommentsButton = $(
+                            '<button class="show-comments-button">Show comments</button>'
+                        );
+                        $("#whiteboard").append($showCommentsButton);
+                        $showCommentsButton.css({top: canvasTop + message.startY, left: canvasLeft + message.startX});
+
+                        var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
+                        var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
+                        var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
+                        var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+                        var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
+                        $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
+                        $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
+                        $("#image-comments-pannel").append($commentsOuterContainer);
+
+                        $showCommentsButton.click(function () {
+                            $("#image-comments-pannel").find('.comments-outer-container').each(function () {
+                                $(this).hide();
+                            });
+                            $commentsOuterContainer.show();
+                        });
+
+                        $hideCommentsButton.click(function () {
+                            $commentsOuterContainer.hide();
+                        });
                     }
                     img.src = message.imageSrc;
                     break;
@@ -279,6 +307,7 @@ window.onload = function () {
                         imgWidth = imgHeight * widthToHeightRation;
                     }
 
+                    // Use temp canvas to resize image to be sent by broadcast
                     var tempCanvas = document.createElement('CANVAS');
                     var tempCtx = tempCanvas.getContext('2d');
                     var dataUrl;
@@ -287,9 +316,37 @@ window.onload = function () {
                     tempCtx.drawImage(img, 0, 0, imgWidth, imgHeight);
                     dataUrl = tempCanvas.toDataURL();
 
-
+                    // Draw image on canvas
                     contextBackground.drawImage(img, startX, startY, imgWidth, imgHeight);
                     uploadImagePositionSelector.remove();
+
+                    // Add "show comments" button and comment container
+                    var $showCommentsButton = $(
+                        '<button class="show-comments-button">Show comments</button>'
+                    );
+                    $("#whiteboard").append($showCommentsButton);
+                    $showCommentsButton.css({top: canvasTop + startY, left: canvasLeft + startX});
+
+                    var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
+                    var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
+                    var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
+                    var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+                    var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
+                    $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
+                    $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
+                    $("#image-comments-pannel").append($commentsOuterContainer);
+
+                    $showCommentsButton.click(function () {
+                        $("#image-comments-pannel").find('.comments-outer-container').each(function () {
+                            $(this).hide();
+                        });
+                        $commentsOuterContainer.show();
+                    });
+
+                    $hideCommentsButton.click(function () {
+                        $commentsOuterContainer.hide();
+                    });
+
                     // Broadcast image
                     socket.emit('image-upload', {
                         image: true,
@@ -438,3 +495,14 @@ function setEditStickyNoteListeners($stickyNote, socket) {
         });
     });
 }
+
+function setCanvasCoordinates() {
+    // Set canvas coordinates
+    canvasTop = $("#canvas").position().top;
+    canvasLeft = $("#canvas").position().left;
+    canvasBottom = $("#canvas").position().top + $("#canvas").height();
+    canvasRight = $("#canvas").position().left + $("#canvas").width();
+}
+
+
+//TODO add id to image comments container
