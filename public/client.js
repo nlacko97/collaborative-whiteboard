@@ -75,7 +75,6 @@ window.onload = function () {
 
     socket.on('new-client-request', (data) => {
         console.log("host user got a new connection request from a new client");
-        console.log(data);
         $("body").append("<div class=\"confirm-dialog confirm-dialog-" + data.connectionId + "\"></div>")
         var confirmBox = $(`.confirm-dialog-${data.connectionId}`);
         $(confirmBox).append("<div class=\"message message-" + data.connectionId + "\"></div>");
@@ -544,10 +543,28 @@ function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerCon
 
 function setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket) {
     $stickyNoteDeleteDiv.click(function() {
-        $stickyNote.remove();
-        // broadcast delete event
-        socket.emit('delete-sticky-note', {
-            stickyNoteId: stickyNoteId
+        $("body").append("<div class=\"confirm-dialog confirm-dialog-delete-sticky-note-" + stickyNoteId + "\"></div>")
+        var confirmBox = $(`.confirm-dialog-delete-sticky-note-${stickyNoteId}`);
+        $(confirmBox).append("<div class=\"message message-delete-sticky-note-" + stickyNoteId + "\"></div>");
+        var msg = $(`.message-delete-sticky-note-${stickyNoteId}`);
+        $(msg).text(`Do you really want to delete this sticky note?`);
+        $(confirmBox).append(`<button id="yes-delete-sticky-note-${stickyNoteId}">Yes</button>`);
+        var yes = $(`#yes-delete-sticky-note-${stickyNoteId}`);
+        $(confirmBox).append(`<button id="no-delete-sticky-note-${stickyNoteId}">No</button>`);
+        var no = $(`#no-delete-sticky-note-${stickyNoteId}`);
+        $(confirmBox).find(`#yes-delete-sticky-note-${stickyNoteId}, #no-delete-sticky-note-${stickyNoteId}`).unbind().click(() => {
+            confirmBox.remove();
+        })
+        $(yes).on('click', () => {
+            $stickyNote.remove();
+            // broadcast delete event
+            socket.emit('delete-sticky-note', {
+                stickyNoteId: stickyNoteId
+            });
+            notyf.success(`Sticky note successfully deleted!`);
+        })
+        $(no).on('click', () => {
+            notyf.error(`Sticky note has not been deleted!`);
         });
     });
 }
