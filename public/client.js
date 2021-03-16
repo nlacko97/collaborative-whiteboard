@@ -212,19 +212,7 @@ window.onload = function () {
                     img.src = message.imageSrc;
                     break;
                 case 'new-sticky-note':
-                    var $stickyNote = $(
-                    '<div id="' + message.stickyNoteId +'" class="sticky-note">' +
-                        '<div>Created by:<br/>' + message.author + '</div>' +
-                        '<div class="textarea" contenteditable></div>' +
-                    '</div>'
-                    );
-                    $("#whiteboard").append($stickyNote);
-
-                    // Add event listeners for moving sticky note
-                    setMoveStickyNoteListeners($stickyNote, socket);
-
-                    // Add event listeners for editing sticky note
-                    setEditStickyNoteListeners($stickyNote, socket);
+                    addNewStickyNote(message.stickyNoteId, message.author, socket);
                     break;
                 case 'new-image-comment':
                     var $comment = $(
@@ -434,20 +422,7 @@ window.onload = function () {
         id_counter += 1;
         var sticky_note_id = String(socket.id) + '-' + String(id_counter);
 
-        // Add empty sticky note to top-left corner of the board
-        var $stickyNote = $(
-        '<div id="' + sticky_note_id +'" class="sticky-note">' +
-            '<div>Created by:<br/>' + socket.id + '</div>' +
-            '<div class="textarea" contenteditable></div>' +
-        '</div>'
-        );
-        $("#whiteboard").append($stickyNote);
-
-        // Add event listeners for moving sticky note
-        setMoveStickyNoteListeners($stickyNote, socket);
-
-        // Add event listeners for editing sticky note
-        setEditStickyNoteListeners($stickyNote, socket);
+        addNewStickyNote(sticky_note_id, socket.id, socket);
 
         // Broadcast the addition of the sticky note
         socket.emit('new-sticky-note', {
@@ -472,10 +447,7 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         globalLeftDifference = mouseX - initialLeft;
         globalBottomDifference = initialBottom - mouseY;
         globalRightDifference = initialRight - mouseX;
-        canvasTop = $("#canvas").position().top;
-        canvasLeft = $("#canvas").position().left;
-        canvasBottom = $("#canvas").position().top + $("#canvas").height();
-        canvasRight = $("#canvas").position().left + $("#canvas").width();
+        setCanvasCoordinates();
     }
 
 
@@ -580,5 +552,20 @@ function setCanvasCoordinates() {
     canvasRight = $("#canvas").position().left + $("#canvas").width();
 }
 
+function addNewStickyNote (stickyNoteId, author, socket) {
+    var $stickyNote = $(
+    '<div id="' + stickyNoteId +'" class="sticky-note">' +
+        '<div>Created by:<br/>' + author + '</div>' +
+        '<div class="textarea" contenteditable></div>' +
+    '</div>'
+    );
+    $("#whiteboard").append($stickyNote);
+
+    // Add event listeners for moving sticky note
+    setMoveStickyNoteListeners($stickyNote, socket);
+
+    // Add event listeners for editing sticky note
+    setEditStickyNoteListeners($stickyNote, socket);
+}
 
 //TODO add listener for broadcasted "add comment" button + implement edit image comment broadcast + extract into different functions if duplicates
