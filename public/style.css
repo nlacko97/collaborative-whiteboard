@@ -236,3 +236,29 @@ button:hover {
      padding-top: 2px;
      cursor: text;
  }
+
+.sticky-note-header {
+   display: flex;
+   width: 150px;
+}
+
+.created-by-header {
+    width: 125px;
+}
+
+.sticky-note-delete-icon {
+    margin-left: auto;
+    cursor: pointer;
+    display: flex
+}
+
+.sticky-note-delete-icon > a{
+    font-size: x-large;
+    text-decoration: none;
+    display: flex;
+    width: 25px;
+}
+
+.sticky-note-delete-icon > a > i {
+    margin: auto;
+}

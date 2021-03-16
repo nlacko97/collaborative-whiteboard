@@ -197,6 +197,9 @@ window.onload = function () {
                     var $stickyNote = $("#" + message.stickyNoteId);
                     $stickyNote.css({top: message.top, left: message.left});
                     break;
+                case 'delete-sticky-note':
+                    $("#" + message.stickyNoteId).remove();
+                    break;
                 default:
                     console.log("Unknown broadcast message type");
                     break;
@@ -463,13 +466,18 @@ function setCanvasCoordinates() {
 }
 
 function addNewStickyNote (stickyNoteId, author, socket) {
-    var $stickyNote = $(
-    '<div id="' + stickyNoteId +'" class="sticky-note">' +
-        '<div>Created by:<br/>' + author + '</div>' +
-        '<div class="textarea" contenteditable></div>' +
-    '</div>'
-    );
+    var $stickyNote = $('<div class="sticky-note"></div>');
+    $stickyNote.attr('id', stickyNoteId);
+    var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
+    var $textareaDiv = $('<div class="textarea" contenteditable></div>');
+    var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
+    var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-delete-bin-line"></i></a></div>');
+    $stickyNoteHeader.append($createdByHeader).append($stickyNoteDeleteDiv);
+    $stickyNote.append($stickyNoteHeader).append($textareaDiv);
     $("#whiteboard").append($stickyNote);
+
+    // Add event listeners for delete sticky note icon
+    setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket);
 
     // Add event listeners for moving sticky note
     setMoveStickyNoteListeners($stickyNote, socket);
@@ -530,6 +538,16 @@ function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerCon
             author: socket.id,
             commentId: comment_id,
             commentContainerId: comment_container_id
+        });
+    });
+}
+
+function setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket) {
+    $stickyNoteDeleteDiv.click(function() {
+        $stickyNote.remove();
+        // broadcast delete event
+        socket.emit('delete-sticky-note', {
+            stickyNoteId: stickyNoteId
         });
     });
 }

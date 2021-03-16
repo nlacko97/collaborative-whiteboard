@@ -104,6 +104,13 @@ MongoClient.connect(uri, {
                 left: message.left
             });
         });
+
+        socket.on('delete-sticky-note', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'delete-sticky-note',
+                stickyNoteId: message.stickyNoteId
+            });
+        });
     }
 
     /**
