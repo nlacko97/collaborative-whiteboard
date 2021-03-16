@@ -44,13 +44,19 @@ MongoClient.connect(uri, {
         });
 
         socket.on('erase', (message) => {
-                    socket.broadcast.emit("broadcast", {
-                        type: 'erase',
-                        arcX: message.arcX,
-                        arcY: message.arcY
-                    });
-                });
+            socket.broadcast.emit("broadcast", {
+                type: 'erase',
+                arcX: message.arcX,
+                arcY: message.arcY
+            });
+        });
 
+        socket.on('undo', (data) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'undo',
+                newState: data.newState
+            })
+        })
 
         socket.on('image-upload', (message) => {
             socket.broadcast.emit("broadcast", {

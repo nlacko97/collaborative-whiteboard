@@ -39,6 +39,7 @@ window.onload = function () {
     $toolsListDiv.hide();
     let $brushLink = $("#brush");
     let $eraserLink = $("#eraser");
+    let $undoLink = $("#undo");
 
 
     // Specifications
@@ -47,6 +48,9 @@ window.onload = function () {
     var isMousePressed = false;
     var mode = "brush";
     var lastEvent = null;
+
+    let currentMove = [];
+    let moves = [];
 
     let newSessionButton = document.getElementById('new-session');
     let endSessionButton = document.getElementById('end-session');
@@ -146,12 +150,21 @@ window.onload = function () {
                     context.moveTo(message.moveToX, message.moveToY);
                     context.lineTo(message.lineToX, message.lineToY);
                     context.stroke();
+
                     break;
                 case 'erase':
                     context.beginPath();
                     context.globalCompositeOperation = 'destination-out';
                     context.arc(message.arcX, message.arcY, 20, 0, Math.PI * 2, false);
                     context.fill();
+                    break;
+                case 'undo':
+                    var img = new Image();
+                    img.onload = function () {
+                        context.clearRect(0, 0, canvas.width, canvas.height);
+                        context.drawImage(img, 0, 0, 1000, 500);
+                    }
+                    img.src = message.newState;
                     break;
                 case 'image-upload':
                     var img = new Image();
@@ -162,10 +175,10 @@ window.onload = function () {
                     break;
                 case 'new-sticky-note':
                     var $stickyNote = $(
-                    '<div id="' + message.stickyNoteId +'" class="sticky-note">' +
+                        '<div id="' + message.stickyNoteId + '" class="sticky-note">' +
                         '<div>Created by:<br/>' + message.author + '</div>' +
                         '<div class="textarea" contenteditable></div>' +
-                    '</div>'
+                        '</div>'
                     );
                     $("#whiteboard").append($stickyNote);
 
@@ -183,7 +196,7 @@ window.onload = function () {
                     break;
                 case 'move-sticky-note':
                     var $stickyNote = $("#" + message.stickyNoteId);
-                    $stickyNote.css({top: message.top, left: message.left});
+                    $stickyNote.css({ top: message.top, left: message.left });
                     break;
                 default:
                     console.log("Unknown broadcast message type");
@@ -203,6 +216,9 @@ window.onload = function () {
     canvas.addEventListener('mousedown', function (event) {
         lastEvent = event;
         isMousePressed = true;
+        console.log("move started");
+        currentMove = [];
+        moves.push(canvas.toDataURL());
     });
 
     // Mouse Move Event
@@ -219,6 +235,15 @@ window.onload = function () {
                 context.moveTo(lastEvent.offsetX, lastEvent.offsetY);
                 context.lineTo(event.offsetX, event.offsetY);
                 context.stroke();
+
+                // console.log(`lastEvent: x:${lastEvent.offsetX}, y:${lastEvent.offsetY}`);
+                // console.log(`event: x:${event.offsetX}, y:${event.offsetY}`);
+                currentMove.push({
+                    lastX: lastEvent.offsetX,
+                    lastY: lastEvent.offsetY,
+                    currX: event.offsetX,
+                    currY: event.offsetY,
+                })
                 // Emit drawing event
                 socket.emit('freehand-drawing', {
                     moveToX: lastEvent.offsetX,
@@ -243,9 +268,28 @@ window.onload = function () {
     // Mouse Up Event
     canvas.addEventListener('mouseup', function (event) {
         isMousePressed = false;
+        console.log("move finished");
+        console.log(currentMove);
+        // moves.push(canvas.toDataURL());
     });
 
+    $undoLink.click(() => {
+        console.log("undo operation");
+        if (moves.length) {
+            var restore_state = moves.pop();
+            var img = new Image();
+            img.onload = function () {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(img, 0, 0, 1000, 500);
+            }
+            img.src = restore_state;
 
+            socket.emit("undo", {
+                userId: socket.connectionId,
+                newState: restore_state
+            });
+        }
+    });
 
     // Upload image to board
     var imageLoader = document.getElementById('imageLoader');
@@ -307,16 +351,16 @@ window.onload = function () {
         whiteboardDivContainer.appendChild(uploadImagePositionSelector);
     });
 
-    $("#sticky-note").click(function(lastEvent) {
+    $("#sticky-note").click(function (lastEvent) {
         sticky_note_id_counter += 1;
         var sticky_note_id = String(socket.id) + '-' + String(sticky_note_id_counter);
 
         // Add empty sticky note to top-left corner of the board
         var $stickyNote = $(
-        '<div id="' + sticky_note_id +'" class="sticky-note">' +
+            '<div id="' + sticky_note_id + '" class="sticky-note">' +
             '<div>Created by:<br/>' + socket.id + '</div>' +
             '<div class="textarea" contenteditable></div>' +
-        '</div>'
+            '</div>'
         );
         $("#whiteboard").append($stickyNote);
 
@@ -372,7 +416,7 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         $(this).off("mouseup");
         $(this).mouseup(moveStickyNoteMouseUp);
     }
-    
+
     function myBodyMouseMove(event) {
         doWhenMouseMoved(stickyNoteBeingMoved);
         stickyNoteBeingMoved.off("mouseup");
@@ -404,7 +448,7 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
         if (right >= canvasRight) {
             left = canvasRight - stickyNoteBeingMoved.width() - 20;
         }
-        stickyNoteBeingMoved.css({top: top, left: left});
+        stickyNoteBeingMoved.css({ top: top, left: left });
 
         // Broadcast sticky note movement
         socket.emit('move-sticky-note', {
@@ -430,7 +474,7 @@ function setMoveStickyNoteListeners($stickyNote, socket) {
 }
 
 function setEditStickyNoteListeners($stickyNote, socket) {
-    $stickyNote.on('input', function(event) {
+    $stickyNote.on('input', function (event) {
         // Broadcast the addition of the sticky note
         socket.emit('edit-sticky-note', {
             stickyNoteId: $stickyNote.attr('id'),
