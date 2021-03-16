@@ -29,7 +29,7 @@ window.onload = function () {
     var contextBackground = canvasBackground.getContext("2d");
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
-    var sticky_note_id_counter = 0;
+    var id_counter = 0;
     let $initialStateDiv = $("#initial-state");
     let $loadingStateDiv = $("#loading-state");
     let $whiteboardDiv = $("#whiteboard");
@@ -170,6 +170,7 @@ window.onload = function () {
                         var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
                         var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
                         var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+                        $commentsInnerContainer.attr('id', message.commentContainerId);
                         var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
                         $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
                         $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
@@ -184,6 +185,28 @@ window.onload = function () {
 
                         $hideCommentsButton.click(function () {
                             $commentsOuterContainer.hide();
+                        });
+
+                        $addCommentButton.click(function () {
+                            id_counter += 1;
+                            var comment_id = String(socket.id) + '-' + String(id_counter);
+                            var $comment = $(
+                            '<div id="' + comment_id +'" class="image-comment">' +
+                                '<div>Created by:<br/>' + socket.id + '</div>' +
+                                '<div class="textarea" contenteditable></div>' +
+                            '</div>'
+                            );
+                            $commentsInnerContainer.append($comment);
+
+                            // Add event listeners for editing sticky note
+                            // setEditStickyNoteListeners($stickyNote, socket);
+
+                            // Broadcast the addition of the sticky note
+                            socket.emit('new-image-comment', {
+                                author: socket.id,
+                                commentId: comment_id,
+                                commentContainerId: message.commentContainerId
+                            });
                         });
                     }
                     img.src = message.imageSrc;
@@ -202,6 +225,18 @@ window.onload = function () {
 
                     // Add event listeners for editing sticky note
                     setEditStickyNoteListeners($stickyNote, socket);
+                    break;
+                case 'new-image-comment':
+                    var $comment = $(
+                    '<div id="' + message.commentId +'" class="image-comment">' +
+                        '<div>Created by:<br/>' + message.author + '</div>' +
+                        '<div class="textarea" contenteditable></div>' +
+                    '</div>'
+                    );
+                    $('#' + message.commentContainerId).append($comment);
+
+                    // Add event listeners for editing sticky note
+                    // setEditStickyNoteListeners($stickyNote, socket);
                     break;
                 case 'edit-sticky-note':
                     var $stickyNote = $("#" + message.stickyNoteId);
@@ -331,6 +366,9 @@ window.onload = function () {
                     var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
                     var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
                     var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+                    id_counter += 1;
+                    var comment_container_id = String(socket.id) + '-' + String(id_counter);
+                    $commentsInnerContainer.attr('id', comment_container_id);
                     var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
                     $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
                     $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
@@ -346,13 +384,36 @@ window.onload = function () {
                     $hideCommentsButton.click(function () {
                         $commentsOuterContainer.hide();
                     });
+                    
+                    $addCommentButton.click(function () {
+                        id_counter += 1;
+                        var comment_id = String(socket.id) + '-' + String(id_counter);
+                        var $comment = $(
+                        '<div id="' + comment_id +'" class="image-comment">' +
+                            '<div>Created by:<br/>' + socket.id + '</div>' +
+                            '<div class="textarea" contenteditable></div>' +
+                        '</div>'
+                        );
+                        $commentsInnerContainer.append($comment);
+
+                        // Add event listeners for editing sticky note
+                        // setEditStickyNoteListeners($stickyNote, socket);
+
+                        // Broadcast the addition of the sticky note
+                        socket.emit('new-image-comment', {
+                            author: socket.id,
+                            commentId: comment_id,
+                            commentContainerId: comment_container_id
+                        });
+                    });
 
                     // Broadcast image
                     socket.emit('image-upload', {
                         image: true,
                         imageSrc: dataUrl,
                         startX: startX,
-                        startY: startY
+                        startY: startY,
+                        commentContainerId: comment_container_id
                     });
                 }
                 img.src = event.target.result;
@@ -365,8 +426,8 @@ window.onload = function () {
     });
 
     $("#sticky-note").click(function(lastEvent) {
-        sticky_note_id_counter += 1;
-        var sticky_note_id = String(socket.id) + '-' + String(sticky_note_id_counter);
+        id_counter += 1;
+        var sticky_note_id = String(socket.id) + '-' + String(id_counter);
 
         // Add empty sticky note to top-left corner of the board
         var $stickyNote = $(
@@ -505,4 +566,4 @@ function setCanvasCoordinates() {
 }
 
 
-//TODO add id to image comments container
+//TODO add listener for broadcasted "add comment" button + implement edit image comment broadcast + extract into different functions if duplicates

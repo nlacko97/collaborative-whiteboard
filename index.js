@@ -58,7 +58,8 @@ MongoClient.connect(uri, {
                 type: 'image-upload',
                 imageSrc: message.imageSrc,
                 startX: message.startX,
-                startY: message.startY
+                startY: message.startY,
+                commentContainerId: message.commentContainerId
             });
         });
 
@@ -67,6 +68,15 @@ MongoClient.connect(uri, {
                 type: 'new-sticky-note',
                 author: message.author,
                 stickyNoteId: message.stickyNoteId
+            });
+        });
+
+        socket.on('new-image-comment', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'new-image-comment',
+                author: message.author,
+                commentId: message.commentId,
+                commentContainerId: message.commentContainerId
             });
         });
 
