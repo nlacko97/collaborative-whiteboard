@@ -198,8 +198,8 @@ window.onload = function () {
                             );
                             $commentsInnerContainer.append($comment);
 
-                            // Add event listeners for editing sticky note
-                            // setEditStickyNoteListeners($stickyNote, socket);
+                            // Add event listeners for editing image comment
+                            setEditImageCommentListeners($comment, socket);
 
                             // Broadcast the addition of the sticky note
                             socket.emit('new-image-comment', {
@@ -235,14 +235,19 @@ window.onload = function () {
                     );
                     $('#' + message.commentContainerId).append($comment);
 
-                    // Add event listeners for editing sticky note
-                    // setEditStickyNoteListeners($stickyNote, socket);
+                    // Add event listeners for editing image comment
+                    setEditImageCommentListeners($comment, socket);
                     break;
                 case 'edit-sticky-note':
                     var $stickyNote = $("#" + message.stickyNoteId);
                     $stickyNote.find(".textarea").get(0).innerText = message.newText;
                     setMoveStickyNoteListeners($stickyNote, socket);
                     setEditStickyNoteListeners($stickyNote, socket);
+                    break;
+                case 'edit-image-comment':
+                console.log("ajungeeee");
+                    var $comment = $("#" + message.commentId);
+                    $comment.find(".textarea").get(0).innerText = message.newText;
                     break;
                 case 'move-sticky-note':
                     var $stickyNote = $("#" + message.stickyNoteId);
@@ -396,8 +401,8 @@ window.onload = function () {
                         );
                         $commentsInnerContainer.append($comment);
 
-                        // Add event listeners for editing sticky note
-                        // setEditStickyNoteListeners($stickyNote, socket);
+                        // Add event listeners for editing image comment
+                        setEditImageCommentListeners($comment, socket);
 
                         // Broadcast the addition of the sticky note
                         socket.emit('new-image-comment', {
@@ -552,6 +557,16 @@ function setEditStickyNoteListeners($stickyNote, socket) {
         // Broadcast the addition of the sticky note
         socket.emit('edit-sticky-note', {
             stickyNoteId: $stickyNote.attr('id'),
+            newText: event.target.innerText
+        });
+    });
+}
+
+function setEditImageCommentListeners($imageComment, socket) {
+    $imageComment.on('input', function(event) {
+        // Broadcast the addition of the imageComment
+        socket.emit('edit-image-comment', {
+            commentId: $imageComment.attr('id'),
             newText: event.target.innerText
         });
     });

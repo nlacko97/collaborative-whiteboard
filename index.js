@@ -88,6 +88,14 @@ MongoClient.connect(uri, {
             });
         });
 
+        socket.on('edit-image-comment', (message) => {
+            socket.broadcast.emit("broadcast", {
+                type: 'edit-image-comment',
+                commentId: message.commentId,
+                newText: message.newText
+            });
+        });
+
         socket.on('move-sticky-note', (message) => {
             socket.broadcast.emit("broadcast", {
                 type: 'move-sticky-note',
