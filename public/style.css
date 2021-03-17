@@ -262,3 +262,14 @@ button:hover {
 .sticky-note-delete-icon > a > i {
     margin: auto;
 }
+
+
+.host-user-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#end-session {
+    display: none;
+}

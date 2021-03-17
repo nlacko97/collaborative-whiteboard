@@ -28,9 +28,19 @@ MongoClient.connect(uri, {
         console.log("new client :" + socket.id);
         socket.on('disconnect', () => {
             console.log("client disconnected");
-        })
+            if (socket.id == hostUserId) {
+                endSessionForAll(socket);
+            }
+        });
+
         socket.on('join-session', joinSession);
-        socket.on('end-session', endSession);
+        socket.on('end-session', (message) => {
+            if (message.connectionId == hostUserId) {
+                endSessionForAll(socket);
+            } else { // "end session" event is received from a regular user
+                //TODO we don't have to do anything in this case yet;
+            }
+        });
         socket.on('new-client-request-decision', (data) => {
             io.to(data.clientId).emit("new-client-request-decision", {
                 accepted: data.accepted
@@ -188,14 +198,30 @@ MongoClient.connect(uri, {
         });
     }
 
-    function endSession() {
-        dbo.collection('sessions').deleteOne((err, res) => {
-            if (err) throw err;
-            console.log("session ended");
-        })
-    }
 
     io.on('connection', onConnection);
 
     http.listen(port, () => console.log('server listening on port ' + port));
+
+
+
+    function endSessionForAll(socket) {
+        // delete session
+        dbo.collection('sessions').deleteOne((err, res) => {
+            if (err) throw err;
+            console.log("session ended");
+
+            // delete data (operations) from session
+            dbo.collection('operations').remove((err, res) => {
+                if (err) throw err;
+                console.log("all operations from previous session were deleted");
+
+                // emit disconnect for everyone
+                socket.broadcast.emit("broadcast", {
+                    type: 'host-left'
+                });
+            });
+        });
+    }
 })
+

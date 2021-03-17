@@ -17,6 +17,8 @@ var canvasRight = 0;
 
 // Global definitions
 var id_counter = 0;
+var isHost = false;
+var sessionStarted = false;
 
 window.onload = function () {
     var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
@@ -129,6 +131,8 @@ window.onload = function () {
             $toolsListDiv.show();
             setCanvasCoordinates();
             notyf.success("Successfully joined session!");
+            sessionStarted = true;
+            $(endSessionButton).show();
         } else {
             $loadingStateDiv.hide();
             $initialStateDiv.show();
@@ -150,6 +154,11 @@ window.onload = function () {
                 $toolsListDiv.show();
                 setCanvasCoordinates();
                 notyf.success("Successfully joined session!");
+                notyf.success("There was no session started. You started a new session, so you are the host of this session!");
+                $("body").append($('<div class="title host-user-info">You are the host!</div>'));
+                isHost = true;
+                sessionStarted = true;
+                $(endSessionButton).show();
             }
         });
 
@@ -232,6 +241,9 @@ window.onload = function () {
                 case 'delete-sticky-note':
                     $("#" + message.stickyNoteId).remove();
                     break;
+                case 'host-left':
+                    window.location.reload(true);
+                    break;
                 default:
                     console.log("Unknown broadcast message type");
                     break;
@@ -240,11 +252,38 @@ window.onload = function () {
     })
 
     endSessionButton.addEventListener('click', () => {
-        socket.emit('end-session', {
-            connectionId: socket.id
-        });
-        console.log("sending end-session request");
-    })
+        if (sessionStarted) {
+            $("body").append("<div class=\"confirm-dialog confirm-dialog-end-session-" + socket.id + "\"></div>")
+            var confirmBox = $(`.confirm-dialog-end-session-${socket.id}`);
+            $(confirmBox).append("<div class=\"message message-end-session-" + socket.id + "\"></div>");
+            var msg = $(`.message-end-session-${socket.id}`);
+            if (isHost) {
+                $(msg).text(`You are the Host of this whiteboard session! If decide to leave, the session will be ended for all connected users. Are you sure you want to leave the whiteboard session?`);
+            } else {
+                $(msg).text(`Are you sure you want to leave the whiteboard session?`);
+            }
+            $(confirmBox).append(`<button id="yes-end-session-${socket.id}">Yes</button>`);
+            var yes = $(`#yes-end-session-${socket.id}`);
+            $(confirmBox).append(`<button id="no-end-session-${socket.id}">No</button>`);
+            var no = $(`#no-end-session-${socket.id}`);
+            $(confirmBox).find(`#yes-end-session-${socket.id}, #no-end-session-${socket.id}`).unbind().click(() => {
+                confirmBox.remove();
+            })
+            $(yes).on('click', () => {
+                if (isHost) {
+                    socket.emit('end-session', {
+                        connectionId: socket.id
+                    });
+                    console.log("sending end-session request");
+                }
+
+                window.location.reload(true);
+            })
+            $(no).on('click', () => {
+                notyf.error(`You chose not to leave the session!`);
+            });
+        }
+    });
 
     // Mouse Down Event
     canvas.addEventListener('mousedown', function (event) {
