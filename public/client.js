@@ -76,6 +76,7 @@ window.onload = function () {
     })
 
     $downloadLink.on('click', () => {
+        window.scrollTo(0,0);
         html2canvas($whiteboardDivv).then(function (canvasForScreen) {
             var link = document.createElement('a');
             link.download = 'whiteboard.png';
