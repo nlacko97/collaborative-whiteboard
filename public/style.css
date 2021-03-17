@@ -137,7 +137,7 @@ button:hover {
     width: 150px;
     padding: 10px;
     font-size: 1rem;
-    box-shadow: 3px 3px 5px rgba(88,88,88,.2);
+    box-shadow: 3px 3px 5px rgba(88, 88, 88, 0.2);
     font-family: "Reenie Beanie";
     cursor: move;
     /* backface-visibility: hidden; */
@@ -168,12 +168,12 @@ button:hover {
 }
 
 #image-comments-pannel > .comments-outer-container {
-   position: absolute;
-   border: 2px solid grey;
-   height: 500px;
-   width: 280px;
-   overflow: scroll;
-   display: none;
+    position: absolute;
+    border: 2px solid grey;
+    height: 500px;
+    width: 280px;
+    overflow: scroll;
+    display: none;
 }
 
 .show-comments-button {
@@ -206,12 +206,12 @@ button:hover {
 }
 
 .image-comment {
-    background-color: #6495ED;
+    background: rgb(255, 204, 217);
     font-size: 10px;
     width: 150px;
     padding: 10px;
     font-size: 1rem;
-    box-shadow: 3px 3px 5px rgba(88,88,88,.2);
+    box-shadow: 3px 3px 5px rgba(88, 88, 88, 0.2);
     font-family: "Reenie Beanie";
     /* backface-visibility: hidden; */
     margin-left: auto;
@@ -221,25 +221,25 @@ button:hover {
 }
 
 .image-comment > .textarea {
-     background-color: #6495ED;
-     -moz-appearance: textfield-multiline;
-     -webkit-appearance: textarea;
-     font-size: 1.3rem;
-     /* border: 1px solid gray; */
-     /* font: medium -moz-fixed;
+    background: rgb(255, 204, 217);
+    -moz-appearance: textfield-multiline;
+    -webkit-appearance: textarea;
+    font-size: 1.3rem;
+    /* border: 1px solid gray; */
+    /* font: medium -moz-fixed;
      font: -webkit-small-control; */
-     overflow: auto;
-     width: 150px;
-     height: 90px;
-     border-top: 0.5px solid rgba(87, 87, 87, 0.1);
-     margin-top: 5px;
-     padding-top: 2px;
-     cursor: text;
- }
+    overflow: auto;
+    width: 150px;
+    height: 90px;
+    border-top: 0.5px solid rgba(87, 87, 87, 0.1);
+    margin-top: 5px;
+    padding-top: 2px;
+    cursor: text;
+}
 
 .sticky-note-header {
-   display: flex;
-   width: 150px;
+    display: flex;
+    width: 150px;
 }
 
 .created-by-header {
@@ -249,10 +249,10 @@ button:hover {
 .sticky-note-delete-icon {
     margin-left: auto;
     cursor: pointer;
-    display: flex
+    display: flex;
 }
 
-.sticky-note-delete-icon > a{
+.sticky-note-delete-icon > a {
     font-size: x-large;
     text-decoration: none;
     display: flex;

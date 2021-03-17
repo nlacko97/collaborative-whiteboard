@@ -25,6 +25,7 @@ window.onload = function () {
     console.log(decrypted.toString(CryptoJS.enc.Utf8))
 
 
+
     // Definitions
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext("2d");
@@ -35,6 +36,7 @@ window.onload = function () {
     let $initialStateDiv = $("#initial-state");
     let $loadingStateDiv = $("#loading-state");
     let $whiteboardDiv = $("#whiteboard");
+    let $whiteboardDivv = $("#whiteboard")[0];
     let $toolsListDiv = $(".tools-list");
     $loadingStateDiv.hide();
     $whiteboardDiv.hide();
@@ -42,7 +44,7 @@ window.onload = function () {
     let $brushLink = $("#brush");
     let $eraserLink = $("#eraser");
     let $undoLink = $("#undo");
-
+    let $downloadLink = $("#download")
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -59,19 +61,29 @@ window.onload = function () {
 
     let socket = io();
 
-    $($brushLink).on('click', () => {
+    $brushLink.on('click', () => {
         mode = "brush";
-        $($brushLink).addClass("selected");
-        $($eraserLink).removeClass("selected");
+        $brushLink.addClass("selected");
+        $eraserLink.removeClass("selected");
         $(canvas).css("cursor", "url('images/cursor-brush.cur'), auto");
     })
 
-    $($eraserLink).on('click', () => {
+    $eraserLink.on('click', () => {
         mode = "eraser";
-        $($eraserLink).addClass("selected");
-        $($brushLink).removeClass("selected");
+        $eraserLink.addClass("selected");
+        $brushLink.removeClass("selected");
         $(canvas).css("cursor", "url('images/cursor-eraser.cur'), auto");
     })
+
+    $downloadLink.on('click', () => {
+        html2canvas($whiteboardDivv).then(function (canvasForScreen) {
+            var link = document.createElement('a');
+            link.download = 'whiteboard.png';
+            link.href = canvasForScreen.toDataURL()
+            link.click();
+            // document.body.appendChild(canvasForScreen);
+        });
+    });
 
     socket.on('connect', () => {
         console.log("connection id: " + socket.id);
@@ -191,7 +203,7 @@ window.onload = function () {
                     break;
                 case 'new-image-comment':
                     var $comment = $(
-                    '<div id="' + message.commentId +'" class="image-comment">' +
+                        '<div id="' + message.commentId + '" class="image-comment">' +
                         '<div>Created by:<br/>' + message.author + '</div>' +
                         '<div class="textarea" contenteditable></div>' +
                         '</div>'
@@ -208,7 +220,7 @@ window.onload = function () {
                     setEditStickyNoteListeners($stickyNote, socket);
                     break;
                 case 'edit-image-comment':
-                console.log("ajungeeee");
+                    console.log("ajungeeee");
                     var $comment = $("#" + message.commentId);
                     $comment.find(".textarea").get(0).innerText = message.newText;
                     break;
@@ -313,10 +325,10 @@ window.onload = function () {
         console.log("undo operation");
         lastMoveIndex = lastIndexOf(moves, socket.id)
         if (lastMoveIndex != -1) {
-            moves.splice(lastMoveIndex, 1);
             socket.emit("undo", {
                 moveId: moves[lastMoveIndex].moveId
             });
+            moves.splice(lastMoveIndex, 1);
             reDrawCanvas();
         }
     });
@@ -405,7 +417,7 @@ window.onload = function () {
         whiteboardDivContainer.appendChild(uploadImagePositionSelector);
     });
 
-    $("#sticky-note").click(function() {
+    $("#sticky-note").click(function () {
         id_counter += 1;
         var sticky_note_id = String(socket.id) + '-' + String(id_counter);
 
@@ -522,7 +534,7 @@ function setEditStickyNoteListeners($stickyNote, socket) {
 }
 
 function setEditImageCommentListeners($imageComment, socket) {
-    $imageComment.on('input', function(event) {
+    $imageComment.on('input', function (event) {
         // Broadcast the addition of the imageComment
         socket.emit('edit-image-comment', {
             commentId: $imageComment.attr('id'),
@@ -539,7 +551,7 @@ function setCanvasCoordinates() {
     canvasRight = $("#canvas").position().left + $("#canvas").width();
 }
 
-function addNewStickyNote (stickyNoteId, author, socket) {
+function addNewStickyNote(stickyNoteId, author, socket) {
     var $stickyNote = $('<div class="sticky-note"></div>');
     $stickyNote.attr('id', stickyNoteId);
     var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
@@ -560,13 +572,13 @@ function addNewStickyNote (stickyNoteId, author, socket) {
     setEditStickyNoteListeners($stickyNote, socket);
 }
 
-function createImageCommentsContainers (commentContainerId, startY, startX, socket) {
+function createImageCommentsContainers(commentContainerId, startY, startX, socket) {
     // Add "show comments" button and comment container
     var $showCommentsButton = $(
         '<button class="show-comments-button">Show comments</button>'
     );
     $("#whiteboard").append($showCommentsButton);
-    $showCommentsButton.css({top: canvasTop + startY, left: canvasLeft + startX});
+    $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
 
     var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
     var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
@@ -597,10 +609,10 @@ function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerCon
         id_counter += 1;
         var comment_id = String(socket.id) + '-' + String(id_counter);
         var $comment = $(
-        '<div id="' + comment_id +'" class="image-comment">' +
+            '<div id="' + comment_id + '" class="image-comment">' +
             '<div>Created by:<br/>' + socket.id + '</div>' +
             '<div class="textarea" contenteditable></div>' +
-        '</div>'
+            '</div>'
         );
         $commentsInnerContainer.append($comment);
 
@@ -617,7 +629,7 @@ function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerCon
 }
 
 function setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket) {
-    $stickyNoteDeleteDiv.click(function() {
+    $stickyNoteDeleteDiv.click(function () {
         $("body").append("<div class=\"confirm-dialog confirm-dialog-delete-sticky-note-" + stickyNoteId + "\"></div>")
         var confirmBox = $(`.confirm-dialog-delete-sticky-note-${stickyNoteId}`);
         $(confirmBox).append("<div class=\"message message-delete-sticky-note-" + stickyNoteId + "\"></div>");

@@ -65,6 +65,7 @@ MongoClient.connect(uri, {
                     moveId: records.ops[0]._id
                 })
             })
+            console.log("new move recorded");
         });
 
         socket.on('erase', (message) => {
@@ -85,6 +86,7 @@ MongoClient.connect(uri, {
                 type: 'undo',
                 moveId: data.moveId
             })
+            console.log("undo operation");
         })
 
         socket.on('image-upload', (message) => {
