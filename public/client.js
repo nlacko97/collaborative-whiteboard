@@ -767,6 +767,12 @@ window.onload = function () {
             var commentContainerId = $commentsInnerContainer.attr('id');
             addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, commentContainerId, socket);
         });
+
+        // Add functionality to existing sticky notes
+        $imageCommentPanelDiv.find(".image-comment").each(function () {
+            var $comment = $(this);
+            setEditImageCommentListeners($comment, socket);
+        });
     }
 
     function addFunctionalityToShowCommentsButton($showCommentsButton, $commentsOuterContainer) {
