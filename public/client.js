@@ -26,8 +26,6 @@ window.onload = function () {
     var decrypted = CryptoJS.AES.decrypt(encrypted, "Secret Passphrase");
     console.log(decrypted.toString(CryptoJS.enc.Utf8))
 
-
-
     // Definitions
     var canvas = document.getElementById("canvas");
     var context = canvas.getContext("2d");
@@ -282,12 +280,11 @@ window.onload = function () {
             })
             $(yes).on('click', () => {
                 if (isHost) {
+                    console.log("sending end-session request");
                     socket.emit('end-session', {
                         connectionId: socket.id
                     });
-                    console.log("sending end-session request");
                 }
-
                 window.location.reload(true);
             })
             $(no).on('click', () => {

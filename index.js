@@ -9,6 +9,8 @@ const port = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER_NAME}.exvpx.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`;
 let hostUserId;
+let hostDisconnectedTriggered;
+let hostEndSessionTriggered;
 
 MongoClient.connect(uri, {
     useUnifiedTopology: true
@@ -18,29 +20,36 @@ MongoClient.connect(uri, {
     console.log("Connected to database");
 
     // for dev env
-    dbo.collection('sessions').countDocuments((err, res) => {
-        if (err) throw err;
-        if (res) {
-            dbo.collection('sessions').drop();
-        }
-    })
+//    dbo.collection('sessions').countDocuments((err, res) => {
+//        if (err) throw err;
+//        if (res) {
+//            dbo.collection('sessions').drop();
+//        }
+//    })
 
     app.use(express.static(__dirname + '/public'));
 
     function onConnection(socket) {
         console.log("new client :" + socket.id);
         socket.on('disconnect', () => {
-            console.log("client disconnected");
             if (socket.id == hostUserId) {
-                endSessionForAll(socket);
+                hostDisconnectedTriggered = true;
+                if (!hostEndSessionTriggered) {
+                    hostUserId = -1;
+                    endSessionForAll(socket);
+                }
             }
         });
         
         socket.on('join-session', joinSession);
         socket.on('end-session', (message) => {
+            console.log('end-session requested');
             if (message.connectionId == hostUserId) {
-                hostUserId = -1;
-                endSessionForAll(socket);
+                hostEndSessionTriggered = true;
+                if (!hostDisconnectedTriggered) {
+                    hostUserId = -1;
+                    endSessionForAll(socket);
+                }
             } else { // "end session" event is received from a regular user
                 //TODO we don't have to do anything in this case yet;
             }
@@ -210,6 +219,8 @@ MongoClient.connect(uri, {
                     if (err) throw err;
                     console.log("new session inserted");
                     hostUserId = data.connectionId;
+                    hostDisconnectedTriggered = false;
+                    hostEndSessionTriggered = false;
                 });
                 callback({
                     status: "accepted"
