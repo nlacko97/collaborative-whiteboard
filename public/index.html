@@ -12,7 +12,7 @@
 </head>
 
 <body id="myBody">
-    <div class="title">
+    <div id="title">
         <h4>
             <span>Collaborative Whiteboard application</span>
         </h4>
@@ -40,7 +40,7 @@
         </div>
         <div class="tool">
             <a href="#" title="Upload image">
-                <label for="imageLoader">
+                <label for="imageLoader" style="cursor: pointer;">
                     <i class="ri-image-line"></i>
                 </label>
                 <input type="file" id="imageLoader" name="imageLoader" />
@@ -51,12 +51,22 @@
                 <i class="ri-arrow-down-circle-line"></i>
             </a>
         </div>
+        <div class="tool">
+            <a href="#" id="help" title="Help">
+                <i class="ri-question-line"></i>
+            </a>
+        </div>
+        <div class="tool">
+            <a href="" title="End session" id="end-session">
+                <i class="ri-logout-box-r-line"></i>
+            </a>
+        </div>
     </div>
     <div id="whiteboard">
         <div id="sticky-notes-container" style="z-index: 999;"></div>
         <div id="image-comment-buttons-container" style="z-index: 999;"></div>
-        <canvas id="background-canvas" width="1000px" height="500px"></canvas>
-        <canvas id="canvas" width="1000px" height="500px"></canvas>
+        <canvas id="background-canvas" width="1000px" height="650px"></canvas>
+        <canvas id="canvas" width="1000px" height="650px"></canvas>
         <div id="image-comments-pannel"></div>
     </div>
 
@@ -70,7 +80,7 @@
     <div id="loading-state">
         <i class="ri-remote-control-line"></i> waiting to join session ...
     </div>
-    <button id="end-session">End session</button>
+    <!-- <button id="end-session">End session</button> -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>

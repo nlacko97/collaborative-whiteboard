@@ -34,6 +34,7 @@ window.onload = function () {
     var contextBackground = canvasBackground.getContext("2d");
     var canvasWidth = canvas.width;
     var canvasHeight = canvas.height;
+    let $titleDiv = $("#title");
     let $initialStateDiv = $("#initial-state");
     let $loadingStateDiv = $("#loading-state");
     let $whiteboardDiv = $("#whiteboard");
@@ -45,7 +46,8 @@ window.onload = function () {
     let $brushLink = $("#brush");
     let $eraserLink = $("#eraser");
     let $undoLink = $("#undo");
-    let $downloadLink = $("#download")
+    let $downloadLink = $("#download");
+    let $helpLink = $("#help");
     let $imageCommentPanelDiv = $("#image-comments-pannel");
     let $stickyNotesDiv = $("#sticky-notes-container");
     let $imageCommentButtonDiv = $("#image-comment-buttons-container");
@@ -83,7 +85,7 @@ window.onload = function () {
     })
 
     $downloadLink.on('click', () => {
-        window.scrollTo(0, 0);
+        // window.scrollTo(0, 0);
         html2canvas($whiteboardDivv).then(function (canvasForScreen) {
             var link = document.createElement('a');
             link.download = 'whiteboard.png';
@@ -91,6 +93,33 @@ window.onload = function () {
             link.click();
             // document.body.appendChild(canvasForScreen);
         });
+    });
+
+    var helpOpened = false;
+    $helpLink.on('click', () => {
+        if (!helpOpened) {
+            var notification = notyf.success({
+                duration: 50000000,
+                position: {
+                    x: 'center',
+                    y: 'top'
+                },
+                ripple: false,
+                background: '#f7ebc1',
+                className: 'toast-custom-notyf',
+                icon: false,
+                dismissible: false,
+                message: `<h1> Collaborative Whiteboard application</h1>
+                <ul><li>Description</li><li>Help</li></ul><br><br>
+                <button id="close-help">Close help</button>
+                `
+            });
+            helpOpened = true;
+            $("#close-help").click(() => {
+                notyf.dismiss(notification);
+                helpOpened = false;
+            })
+        }
     });
 
     socket.on('connect', () => {
@@ -140,6 +169,7 @@ window.onload = function () {
     socket.on("new-client-request-decision", (data) => {
         if (data.accepted == true) {
             $loadingStateDiv.hide();
+            $titleDiv.hide();
             $whiteboardDiv.show();
             $toolsListDiv.show();
             setCanvasCoordinates();
@@ -171,12 +201,13 @@ window.onload = function () {
         }, (response) => {
             if (response.status == "accepted") {
                 $loadingStateDiv.hide();
+                $titleDiv.hide();
                 $whiteboardDiv.show();
                 $toolsListDiv.show();
                 setCanvasCoordinates();
                 notyf.success("Successfully joined session!");
                 notyf.success("There was no session started. You started a new session, so you are the host of this session!");
-                $("body").append($('<div class="title host-user-info">You are the host!</div>'));
+                // $("body").append($('<div class="title host-user-info">You are the host!</div>'));
                 isHost = true;
                 sessionStarted = true;
                 $(endSessionButton).show();
@@ -272,7 +303,8 @@ window.onload = function () {
         })
     })
 
-    endSessionButton.addEventListener('click', () => {
+    endSessionButton.addEventListener('click', (e) => {
+        e.preventDefault();
         if (sessionStarted) {
             $("body").append("<div class=\"confirm-dialog confirm-dialog-end-session-" + socket.id + "\"></div>")
             var confirmBox = $(`.confirm-dialog-end-session-${socket.id}`);
@@ -732,7 +764,7 @@ window.onload = function () {
         $imageCommentButtonDiv.html(data.imageCommentButtonsHTML);
 
         // Add functionality to sticky notes, comments, and image buttons
-        $stickyNotesDiv.find(".sticky-note").each(function() {
+        $stickyNotesDiv.find(".sticky-note").each(function () {
             var $stickyNote = $(this);
             var stickyNoteId = $stickyNote.attr('id');
             var $stickyNoteDeleteDiv = $stickyNote.find(".sticky-note-delete-icon");
@@ -745,7 +777,7 @@ window.onload = function () {
         });
 
         // Add functionality to image buttons ("show comments" buttons)
-        $imageCommentButtonDiv.find(".show-comments-button").each(function() {
+        $imageCommentButtonDiv.find(".show-comments-button").each(function () {
             $showCommentsButton = $(this);
             commentContainerId = $showCommentsButton.attr('data-comment-container-id');
             $commentsOuterContainer = $imageCommentPanelDiv.find('.comments-outer-container[data-comment-container-id="' + commentContainerId + '"]');
@@ -753,7 +785,7 @@ window.onload = function () {
         });
 
         // Add functionality to the hide comments button
-        $imageCommentPanelDiv.find(".hide-comments").each(function() {
+        $imageCommentPanelDiv.find(".hide-comments").each(function () {
             var $hideCommentsButton = $(this);
             var $commentsOuterContainer = $hideCommentsButton.closest('.comments-outer-container');
             $hideCommentsButton.click(function () {

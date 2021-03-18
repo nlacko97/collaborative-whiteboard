@@ -7,7 +7,7 @@ body {
     min-width: 100%; */
 }
 
-.title {
+#title {
     font-size: 2rem;
     display: flex;
     justify-content: center;
@@ -46,7 +46,7 @@ a.selected {
     display: flex;
     flex-direction: column;
     margin: 1rem 5rem;
-    height: 510px;
+    height: 660px;
     width: 1302px;
 }
 
@@ -68,7 +68,7 @@ a.selected {
     position: absolute;
     border: 2px solid grey;
     width: 1000px;
-    height: 500px;
+    height: 650px;
     background-color: rgba(0, 0, 0, 0.3);
     font-size: 50px;
 }
@@ -206,7 +206,7 @@ button:hover {
 }
 
 #image-comments-pannel {
-    height: 500px;
+    height: 650px;
     width: 280px;
     margin-left: auto;
     order: 2;
@@ -215,7 +215,7 @@ button:hover {
 #image-comments-pannel > .comments-outer-container {
     position: absolute;
     border: 2px solid grey;
-    height: 500px;
+    height: 650px;
     width: 280px;
     overflow: scroll;
     display: none;
@@ -321,4 +321,39 @@ button:hover {
 
 #end-session {
     display: none;
+}
+
+.toast-custom-notyf {
+    max-width: 50em !important;
+    color: rgb(70, 70, 70);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* .notyf__ripple {
+        height: 50em;
+        width: 50em;
+    } */
+}
+
+#close-help {
+    width: fit-content;
+    border: 1px solid grey;
+    border-radius: 5px;
+    padding: 0.5rem 0.3rem;
+    text-transform: uppercase;
+    color: rgb(70, 70, 70);;
+    font-weight: 400;
+    background: linear-gradient(to right, #faf7ea, #ccc3a3);
+    cursor: pointer;
+}
+
+#close-help:hover {
+    background: linear-gradient(to right, #dbd9cd, #aca48a);
+}
+
+.notyf__dismiss-btn::before,
+.notyf__dismiss-btn::after {
+    background: rgb(70, 70, 70) !important;
+    height: 25px !important;
+    padding-right: 10px !important;
 }
