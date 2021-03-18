@@ -97,12 +97,12 @@ MongoClient.connect(uri, {
                 if (err) throw err;
                 socket.broadcast.emit("broadcast", {
                     type: "new-move",
-                    moveId: records.ops[0]._id,
+                    _id: records.ops[0]._id,
                     moves: newMove.moves,
                     userId: newMove.userId
                 })
                 callback({
-                    moveId: records.ops[0]._id
+                    _id: records.ops[0]._id
                 })
             })
             console.log("new move recorded");
@@ -118,13 +118,13 @@ MongoClient.connect(uri, {
 
         socket.on('undo', (data) => {
             // DELETE FROM DATABASE
-            dbo.collection('operations').deleteOne({ moveId: data.moveId }, (err, res) => {
+            dbo.collection('operations').deleteOne({ _id: data._id }, (err, res) => {
                 if (err) throw err;
                 console.log("session ended");
             })
             socket.broadcast.emit("broadcast", {
                 type: 'undo',
-                moveId: data.moveId
+                _id: data._id
             })
             console.log("undo operation");
         })

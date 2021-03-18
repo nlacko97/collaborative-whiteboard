@@ -201,7 +201,7 @@ window.onload = function () {
                 case 'new-move':
                     moves.push({
                         moves: message.moves,
-                        moveId: message.moveId,
+                        _id: message._id,
                         userId: message.userId
                     });
                     break;
@@ -213,7 +213,8 @@ window.onload = function () {
                     break;
                 case 'undo':
                     console.log("got undo from another user");
-                    var lastMoveIndex = moves.findIndex(({ moveId }) => moveId === message.moveId);
+                    var lastMoveIndex = moves.findIndex(({ _id }) => _id === message._id);
+                    console.log("moveindex: ", lastMoveIndex);
                     if (lastMoveIndex != -1) {
                         moves.splice(lastMoveIndex, 1);
                         reDrawCanvas();
@@ -366,7 +367,7 @@ window.onload = function () {
         }, (data) => {
             moves.push({
                 moves: moveToSave,
-                moveId: data.moveId,
+                _id: data._id,
                 userId: socket.id
             });
         })
@@ -385,7 +386,7 @@ window.onload = function () {
         lastMoveIndex = lastIndexOf(moves, socket.id)
         if (lastMoveIndex != -1) {
             socket.emit("undo", {
-                moveId: moves[lastMoveIndex].moveId
+                _id: moves[lastMoveIndex]._id
             });
             moves.splice(lastMoveIndex, 1);
             reDrawCanvas();
