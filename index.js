@@ -120,7 +120,7 @@ MongoClient.connect(uri, {
             // DELETE FROM DATABASE
             dbo.collection('operations').deleteOne({ _id: data._id }, (err, res) => {
                 if (err) throw err;
-                console.log("session ended");
+                console.log("move deleted");
             })
             socket.broadcast.emit("broadcast", {
                 type: 'undo',
