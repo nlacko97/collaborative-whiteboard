@@ -19,6 +19,7 @@ var canvasRight = 0;
 var id_counter = 0;
 var isHost = false;
 var sessionStarted = false;
+var username = '';
 
 window.onload = function () {
     var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
@@ -48,6 +49,9 @@ window.onload = function () {
     let $imageCommentPanelDiv = $("#image-comments-pannel");
     let $stickyNotesDiv = $("#sticky-notes-container");
     let $imageCommentButtonDiv = $("#image-comment-buttons-container");
+    let $usernameInput = $("#username");
+    let $usernameErrorMessage = $("#username-error-message");
+    $usernameErrorMessage.hide();
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -99,10 +103,10 @@ window.onload = function () {
         var confirmBox = $(`.confirm-dialog-${data.connectionId}`);
         $(confirmBox).append("<div class=\"message message-" + data.connectionId + "\"></div>");
         var msg = $(`.message-${data.connectionId}`);
-        $(msg).text(`Would you like to accept a new user ${data.connectionId} to the session?`);
-        $(confirmBox).append(`<button id="yes-${data.connectionId}">Yes</button>`);
+        $(msg).html(data.message);
+        $(confirmBox).append(`<button id="yes-${data.connectionId}">Accept</button>`);
         var yes = $(`#yes-${data.connectionId}`);
-        $(confirmBox).append(`<button id="no-${data.connectionId}">No</button>`);
+        $(confirmBox).append(`<button id="no-${data.connectionId}">Decline</button>`);
         var no = $(`#no-${data.connectionId}`);
         $(confirmBox).find(`#yes-${data.connectionId}, #no-${data.connectionId}`).unbind().click(() => {
             confirmBox.remove();
@@ -121,7 +125,7 @@ window.onload = function () {
                 imageCanvasState: canvasBackground.toDataURL(),
                 imageCommentButtonsHTML: $imageCommentButtonDiv.html()
             })
-            notyf.success(`Accepted user ${data.connectionId} to the session!`);
+            notyf.success(`Accepted ${data.username} to the session!`);
         })
         $(no).on('click', () => {
             socket.emit('new-client-request-decision', {
@@ -129,7 +133,7 @@ window.onload = function () {
                 accepted: false,
                 clientId: data.connectionId
             })
-            notyf.error(`Denied access for user ${data.connectionId} to the session!`);
+            notyf.error(`Denied access for ${data.username} to the session!`);
         });
     });
 
@@ -151,12 +155,19 @@ window.onload = function () {
     });
 
     $(newSessionButton).on('click', () => {
+        username = $usernameInput.val();
+        if (!username) {
+            $usernameErrorMessage.show();
+            notyf.error("Please provide a username before joining!");
+            return;
+        }
         $initialStateDiv.hide();
         $loadingStateDiv.show();
         notyf.success("Connection request sent!")
         console.log("sending join-session request");
         socket.emit('join-session', {
-            connectionId: socket.id
+            connectionId: socket.id,
+            username: username
         }, (response) => {
             if (response.status == "accepted") {
                 $loadingStateDiv.hide();
@@ -604,9 +615,9 @@ window.onload = function () {
         $stickyNote.attr('id', stickyNoteId);
         var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
         var $textareaDiv = $('<div class="textarea" contenteditable></div>');
-        var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
-        var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-delete-bin-line"></i></a></div>');
-        $stickyNoteHeader.append($createdByHeader).append($stickyNoteDeleteDiv);
+        // var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
+        var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-close-circle-line"></i></a></div>');
+        $stickyNoteHeader.append($stickyNoteDeleteDiv);
         $stickyNote.append($stickyNoteHeader).append($textareaDiv);
         // $("#whiteboard").append($stickyNote);
         $("#sticky-notes-container").append($stickyNote);
@@ -656,7 +667,7 @@ window.onload = function () {
             var comment_id = String(socket.id) + '-' + String(id_counter);
             var $comment = $(
                 '<div id="' + comment_id + '" class="image-comment">' +
-                '<div>Created by:<br/>' + socket.id + '</div>' +
+                '<div>Created by:<br/>' + username + '</div>' +
                 '<div class="textarea" contenteditable></div>' +
                 '</div>'
             );
@@ -667,7 +678,7 @@ window.onload = function () {
 
             // Broadcast the addition of the sticky note
             socket.emit('new-image-comment', {
-                author: socket.id,
+                author: username,
                 commentId: comment_id,
                 commentContainerId: comment_container_id
             });
