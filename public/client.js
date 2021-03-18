@@ -20,12 +20,9 @@ var id_counter = 0;
 var isHost = false;
 var sessionStarted = false;
 var username = '';
+var encryptionKey = '';
 
 window.onload = function () {
-    var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
-    console.log(encrypted.toString());
-    var decrypted = CryptoJS.AES.decrypt(encrypted, "Secret Passphrase");
-    console.log(decrypted.toString(CryptoJS.enc.Utf8))
 
     // Definitions
     var canvas = document.getElementById("canvas");
@@ -145,6 +142,7 @@ window.onload = function () {
             setCanvasCoordinates();
             notyf.success("Successfully joined session!");
             sessionStarted = true;
+            encryptionKey = data.key;
             $(endSessionButton).show();
             bringBoardToCurrentState(data, socket);
         } else {
@@ -179,11 +177,13 @@ window.onload = function () {
                 $("body").append($('<div class="title host-user-info">You are the host!</div>'));
                 isHost = true;
                 sessionStarted = true;
+                encryptionKey = response.key;
                 $(endSessionButton).show();
             }
         });
 
         socket.on('broadcast', (message) => {
+            message = JSON.parse(CryptoJS.AES.decrypt(message, encryptionKey).toString(CryptoJS.enc.Utf8));
             switch (message.type) {
                 case 'freehand-drawing':
                     context.beginPath();
@@ -293,9 +293,10 @@ window.onload = function () {
             $(yes).on('click', () => {
                 if (isHost) {
                     console.log("sending end-session request");
-                    socket.emit('end-session', {
+                    var dataToSend = {
                         connectionId: socket.id
-                    });
+                    }
+                    sendData(socket, 'end-session', dataToSend);
                 }
                 window.location.reload(true);
             })
@@ -333,23 +334,26 @@ window.onload = function () {
                     lastY: lastEvent.offsetY,
                     currX: event.offsetX,
                     currY: event.offsetY,
-                })
+                });
+
                 // Emit drawing event
-                socket.emit('freehand-drawing', {
+                var dataToSend = {
                     moveToX: lastEvent.offsetX,
                     moveToY: lastEvent.offsetY,
                     lineToX: event.offsetX,
                     lineToY: event.offsetY
-                });
+                }
+                sendData(socket, 'freehand-drawing', dataToSend);
             } else if (mode === "eraser") {
                 context.globalCompositeOperation = 'destination-out';
                 context.arc(lastEvent.offsetX, lastEvent.offsetY, 20, 0, Math.PI * 2, false);
                 context.fill();
                 // Emit erase event
-                socket.emit('erase', {
+                var dataToSend = {
                     arcX: lastEvent.offsetX,
                     arcY: lastEvent.offsetY
-                });
+                }
+                sendData(socket, 'erase', dataToSend);
             }
             lastEvent = event;
         }
@@ -361,16 +365,18 @@ window.onload = function () {
         isMousePressed = false;
         console.log("move finished");
 
-        socket.emit("new-move", {
+        var dataToSend = {
             userId: socket.id,
             moves: moveToSave
-        }, (data) => {
-            moves.push({
-                moves: moveToSave,
-                _id: data._id,
-                userId: socket.id
-            });
-        })
+        }
+        var callback = (data) => {
+           moves.push({
+               moves: moveToSave,
+               _id: data._id,
+               userId: socket.id
+           });
+        }
+        sendData(socket, 'new-move', dataToSend, callback);
     });
 
     const lastIndexOf = (array, key) => {
@@ -385,9 +391,10 @@ window.onload = function () {
         console.log("undo operation");
         lastMoveIndex = lastIndexOf(moves, socket.id)
         if (lastMoveIndex != -1) {
-            socket.emit("undo", {
+            var dataToSend = {
                 _id: moves[lastMoveIndex]._id
-            });
+            }
+            sendData(socket, 'undo', dataToSend)
             moves.splice(lastMoveIndex, 1);
             reDrawCanvas();
         }
@@ -460,13 +467,14 @@ window.onload = function () {
                     createImageCommentsContainers(comment_container_id, startY, startX, socket);
 
                     // Broadcast image
-                    socket.emit('image-upload', {
+                    var dataToSend = {
                         image: true,
                         imageSrc: dataUrl,
                         startX: startX,
                         startY: startY,
                         commentContainerId: comment_container_id
-                    });
+                    }
+                    sendData(socket, 'image-upload', dataToSend);
                 }
                 img.src = event.target.result;
             }
@@ -484,10 +492,11 @@ window.onload = function () {
         addNewStickyNote(sticky_note_id, socket.id, socket);
 
         // Broadcast the addition of the sticky note
-        socket.emit('new-sticky-note', {
+        var dataToSend = {
             author: socket.id,
             stickyNoteId: sticky_note_id
-        });
+        }
+        sendData(socket, 'new-sticky-note', dataToSend);
     });
 
 
@@ -561,11 +570,12 @@ window.onload = function () {
             stickyNoteBeingMoved.css({ top: top, left: left });
 
             // Broadcast sticky note movement
-            socket.emit('move-sticky-note', {
+            var dataToSend = {
                 stickyNoteId: stickyNoteBeingMoved.attr('id'),
                 top: top,
                 left: left
-            });
+            }
+            sendData(socket, 'move-sticky-note', dataToSend);
         }
 
         function moveStickyNoteMouseUp(event) {
@@ -586,20 +596,22 @@ window.onload = function () {
     function setEditStickyNoteListeners($stickyNote, socket) {
         $stickyNote.on('input', function (event) {
             // Broadcast the addition of the sticky note
-            socket.emit('edit-sticky-note', {
+            var dataToSend = {
                 stickyNoteId: $stickyNote.attr('id'),
                 newText: event.target.innerText
-            });
+            }
+            sendData(socket, 'edit-sticky-note', dataToSend);
         });
     }
 
     function setEditImageCommentListeners($imageComment, socket) {
         $imageComment.on('input', function (event) {
             // Broadcast the addition of the imageComment
-            socket.emit('edit-image-comment', {
+            var dataToSend = {
                 commentId: $imageComment.attr('id'),
                 newText: event.target.innerText
-            });
+            }
+            sendData(socket, 'edit-image-comment', dataToSend);
         });
     }
 
@@ -678,11 +690,12 @@ window.onload = function () {
             setEditImageCommentListeners($comment, socket);
 
             // Broadcast the addition of the sticky note
-            socket.emit('new-image-comment', {
+            var dataToSend = {
                 author: username,
                 commentId: comment_id,
                 commentContainerId: comment_container_id
-            });
+            }
+            sendData(socket, 'new-image-comment', dataToSend);
         });
     }
 
@@ -703,9 +716,10 @@ window.onload = function () {
             $(yes).on('click', () => {
                 $stickyNote.remove();
                 // broadcast delete event
-                socket.emit('delete-sticky-note', {
+                var dataToSend = {
                     stickyNoteId: stickyNoteId
-                });
+                }
+                sendData(socket, 'delete-sticky-note', dataToSend);
                 notyf.success(`Sticky note successfully deleted!`);
             })
             $(no).on('click', () => {
@@ -783,5 +797,14 @@ window.onload = function () {
             });
             $commentsOuterContainer.show();
         });
+    }
+
+    function sendData(socket, eventName, dataToSend, callback) {
+        dataToSend = CryptoJS.AES.encrypt(JSON.stringify(dataToSend), encryptionKey).toString();
+        if (callback) {
+            socket.emit(eventName, dataToSend, callback);
+        } else {
+            socket.emit(eventName, dataToSend);
+        }
     }
 }

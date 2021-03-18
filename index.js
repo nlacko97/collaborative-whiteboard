@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+var CryptoJS = require("crypto-js");
 const port = process.env.PORT || 3000;
 
 // initialize Mongo client and create connection uri
@@ -11,6 +12,7 @@ const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}
 let hostUserId;
 let hostDisconnectedTriggered;
 let hostEndSessionTriggered;
+let encryptionKey;
 
 MongoClient.connect(uri, {
     useUnifiedTopology: true
@@ -32,9 +34,12 @@ MongoClient.connect(uri, {
     function onConnection(socket) {
         console.log("new client :" + socket.id);
         socket.on('disconnect', () => {
+            console.log("disconnect user");
             if (socket.id == hostUserId) {
+                console.log("am ajuns in disconnect");
                 hostDisconnectedTriggered = true;
                 if (!hostEndSessionTriggered) {
+                    console.log("sterg sesiunea din disconnect");
                     hostUserId = -1;
                     endSessionForAll(socket);
                 }
@@ -61,6 +66,7 @@ MongoClient.connect(uri, {
                 if (data.accepted) {
                     dataToSend = {
                         accepted: data.accepted,
+                        key: encryptionKey,
                         moves: moves,
                         stickyNotesHTML: data.stickyNotesHTML,
                         imageCommentsHTML: data.imageCommentsHTML,
@@ -78,29 +84,32 @@ MongoClient.connect(uri, {
         })
 
         socket.on('freehand-drawing', (message) => {
-
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'freehand-drawing',
                 moveToX: message.moveToX,
                 moveToY: message.moveToY,
                 lineToX: message.lineToX,
                 lineToY: message.lineToY
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('new-move', (data, callback) => {
+            data = decryptMessage(data);
             let newMove = {
                 userId: data.userId,
                 moves: data.moves
             }
             dbo.collection('operations').insertOne(newMove, (err, records) => {
                 if (err) throw err;
-                socket.broadcast.emit("broadcast", {
+                var dataToSend = {
                     type: "new-move",
                     _id: records.ops[0]._id,
                     moves: newMove.moves,
                     userId: newMove.userId
-                })
+                }
+                broadcastData(socket, dataToSend);
                 callback({
                     _id: records.ops[0]._id
                 })
@@ -109,84 +118,102 @@ MongoClient.connect(uri, {
         });
 
         socket.on('erase', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'erase',
                 arcX: message.arcX,
                 arcY: message.arcY
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('undo', (data) => {
+            data = decryptMessage(data);
             // DELETE FROM DATABASE
             dbo.collection('operations').deleteOne({ _id: data._id }, (err, res) => {
                 if (err) throw err;
                 console.log("move deleted");
             })
-            socket.broadcast.emit("broadcast", {
+            var dataToSend = {
                 type: 'undo',
                 _id: data._id
-            })
+            }
+            broadcastData(socket, dataToSend);
             console.log("undo operation");
         })
 
         socket.on('image-upload', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 image: true,
                 type: 'image-upload',
                 imageSrc: message.imageSrc,
                 startX: message.startX,
                 startY: message.startY,
                 commentContainerId: message.commentContainerId
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('new-sticky-note', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'new-sticky-note',
                 author: message.author,
                 stickyNoteId: message.stickyNoteId
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('new-image-comment', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'new-image-comment',
                 author: message.author,
                 commentId: message.commentId,
                 commentContainerId: message.commentContainerId
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('edit-sticky-note', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'edit-sticky-note',
                 stickyNoteId: message.stickyNoteId,
                 newText: message.newText
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('edit-image-comment', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'edit-image-comment',
                 commentId: message.commentId,
                 newText: message.newText
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('move-sticky-note', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'move-sticky-note',
                 stickyNoteId: message.stickyNoteId,
                 top: message.top,
                 left: message.left
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
 
         socket.on('delete-sticky-note', (message) => {
-            socket.broadcast.emit("broadcast", {
+            message = decryptMessage(message);
+            var dataToSend = {
                 type: 'delete-sticky-note',
                 stickyNoteId: message.stickyNoteId
-            });
+            }
+            broadcastData(socket, dataToSend);
         });
     }
 
@@ -217,6 +244,7 @@ MongoClient.connect(uri, {
                     startDate: Date(),
                     hostUser: data.connectionId
                 }
+                encryptionKey = randomAlphaNumericString(20);
                 dbo.collection('sessions').insertOne(newSession, (err, succ) => {
                     if (err) throw err;
                     console.log("new session inserted");
@@ -225,7 +253,8 @@ MongoClient.connect(uri, {
                     hostEndSessionTriggered = false;
                 });
                 callback({
-                    status: "accepted"
+                    status: "accepted",
+                    key: encryptionKey
                 })
             }
 
@@ -255,17 +284,39 @@ MongoClient.connect(uri, {
                             dbo.collection('operations').drop((err) => {
                                 if (err) throw err;
                                 console.log("all operations from previous session were deleted");
-
-                                // emit disconnect for everyone
-                                socket.broadcast.emit("broadcast", {
-                                    type: 'host-left'
-                                });
                             });
                         }
+                        // emit disconnect for everyone
+                        var dataToSend = {
+                            type: 'host-left'
+                        }
+                        broadcastData(socket, dataToSend);
                     })
                 });
             }
         })
     }
+
+    function broadcastData(socket, dataToSend, callback) {
+        dataToSend = CryptoJS.AES.encrypt(JSON.stringify(dataToSend), encryptionKey).toString();
+        if (callback) {
+            socket.broadcast.emit("broadcast", dataToSend, callback);
+        } else {
+            socket.broadcast.emit("broadcast", dataToSend);
+        }
+    }
+
+    function decryptMessage(message) {
+        return JSON.parse(CryptoJS.AES.decrypt(message, encryptionKey).toString(CryptoJS.enc.Utf8));
+    }
 })
 
+function randomAlphaNumericString(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
