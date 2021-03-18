@@ -45,11 +45,7 @@ MongoClient.connect(uri, {
                 //TODO we don't have to do anything in this case yet;
             }
         });
-        socket.on('new-client-request-decision', (data) => {
-
-            dbo.collection('operations').find({}).toArray((err, docs) => {
-                console.log(docs);
-            })
+        socket.on('new-client-request-decision', (data)  => {
             dbo.collection('operations').find({}).toArray((err, res) => {
                 if (err) throw err;
                 let moves = res;
@@ -234,7 +230,6 @@ MongoClient.connect(uri, {
 
     function endSessionForAll(socket) {
         // delete session
-        console.log("entering end session for all function");
         dbo.collection('sessions').countDocuments((err, count) => {
             if (err) throw err;
             if (count) {

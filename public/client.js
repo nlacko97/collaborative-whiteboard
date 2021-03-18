@@ -145,21 +145,10 @@ window.onload = function () {
             $whiteboardDiv.show();
             $toolsListDiv.show();
             setCanvasCoordinates();
-            console.log(data.moves);
-            console.log(data.stickyNotesHTML);
-            console.log(data.imageCommentsHTML);
             notyf.success("Successfully joined session!");
             sessionStarted = true;
             $(endSessionButton).show();
-            // draw first canvas
-            moves = data.moves;
-            reDrawCanvas();
-            // draw image canvas
-            var img = new Image();
-            img.onload = function () {
-                contextBackground.drawImage(img, 0, 0, canvasBackground.width, canvasBackground.height);
-            }
-            img.src = data.imageCanvasState;
+            bringBoardToCurrentState(data, socket);
         } else {
             $loadingStateDiv.hide();
             $initialStateDiv.show();
@@ -653,6 +642,7 @@ window.onload = function () {
         );
         $imageCommentButtonDiv.append($showCommentsButton);
         $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
+        $showCommentsButton.attr('data-comment-container-id', commentContainerId);
 
         var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
         var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
@@ -660,16 +650,12 @@ window.onload = function () {
         var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
         $commentsInnerContainer.attr('id', commentContainerId);
         var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
+        $commentsOuterContainer.attr('data-comment-container-id', commentContainerId);
         $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
         $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
         $("#image-comments-pannel").append($commentsOuterContainer);
 
-        $showCommentsButton.click(function () {
-            $("#image-comments-pannel").find('.comments-outer-container').each(function () {
-                $(this).hide();
-            });
-            $commentsOuterContainer.show();
-        });
+        addFunctionalityToShowCommentsButton($showCommentsButton, $commentsOuterContainer);
 
         $hideCommentsButton.click(function () {
             $commentsOuterContainer.hide();
@@ -727,6 +713,71 @@ window.onload = function () {
             $(no).on('click', () => {
                 notyf.error(`Sticky note has not been deleted!`);
             });
+        });
+    }
+
+    function bringBoardToCurrentState(data, socket) {
+        // draw first canvas
+        moves = data.moves;
+        reDrawCanvas();
+
+        // draw image canvas
+        var img = new Image();
+        img.onload = function () {
+            contextBackground.drawImage(img, 0, 0, canvasBackground.width, canvasBackground.height);
+        }
+        img.src = data.imageCanvasState;
+
+        // add sticky notes, comments, and image buttons
+        $stickyNotesDiv.html(data.stickyNotesHTML);
+        $imageCommentPanelDiv.html(data.imageCommentsHTML);
+        $imageCommentButtonDiv.html(data.imageCommentButtonsHTML);
+
+        // Add functionality to sticky notes, comments, and image buttons
+        $stickyNotesDiv.find(".sticky-note").each(function() {
+            var $stickyNote = $(this);
+            var stickyNoteId = $stickyNote.attr('id');
+            var $stickyNoteDeleteDiv = $stickyNote.find(".sticky-note-delete-icon");
+            // Add event listeners for delete sticky note icon
+            setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket);
+            // Add event listeners for moving sticky note
+            setMoveStickyNoteListeners($stickyNote, socket);
+            // Add event listeners for editing sticky note
+            setEditStickyNoteListeners($stickyNote, socket);
+        });
+
+        // Add functionality to image buttons ("show comments" buttons)
+        $imageCommentButtonDiv.find(".show-comments-button").each(function() {
+            $showCommentsButton = $(this);
+            commentContainerId = $showCommentsButton.attr('data-comment-container-id');
+            $commentsOuterContainer = $imageCommentPanelDiv.find('.comments-outer-container[data-comment-container-id="' + commentContainerId + '"]');
+            addFunctionalityToShowCommentsButton($showCommentsButton, $commentsOuterContainer);
+        });
+
+        // Add functionality to the hide comments button
+        $imageCommentPanelDiv.find(".hide-comments").each(function() {
+            var $hideCommentsButton = $(this);
+            var $commentsOuterContainer = $hideCommentsButton.closest('.comments-outer-container');
+            $hideCommentsButton.click(function () {
+                $commentsOuterContainer.hide();
+            });
+        });
+
+        // Add functionality to the add comment button (also adds change listener for comments through the addFunctionalityToAddCommentButton function)
+        $imageCommentPanelDiv.find(".add-comment").each(function () {
+            var $addCommentButton = $(this);
+            var $commentsInnerContainer = $addCommentButton.closest('.comments-outer-container').find('.comments-inner-container');
+            var commentContainerId = $commentsInnerContainer.attr('id');
+            addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, commentContainerId, socket);
+        });
+    }
+
+    function addFunctionalityToShowCommentsButton($showCommentsButton, $commentsOuterContainer) {
+        $showCommentsButton.click(function () {
+            $("#image-comments-pannel").find('.comments-outer-container').each(function () {
+                $(this).hide();
+            });
+            $commentsOuterContainer.show();
         });
     }
 }
