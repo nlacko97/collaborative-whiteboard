@@ -618,9 +618,9 @@ window.onload = function () {
         $stickyNote.attr('id', stickyNoteId);
         var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
         var $textareaDiv = $('<div class="textarea" contenteditable></div>');
-        var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
-        var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-delete-bin-line"></i></a></div>');
-        $stickyNoteHeader.append($createdByHeader).append($stickyNoteDeleteDiv);
+        // var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
+        var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-close-circle-line"></i></a></div>');
+        $stickyNoteHeader.append($stickyNoteDeleteDiv);
         $stickyNote.append($stickyNoteHeader).append($textareaDiv);
         // $("#whiteboard").append($stickyNote);
         $("#sticky-notes-container").append($stickyNote);

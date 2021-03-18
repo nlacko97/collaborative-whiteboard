@@ -298,10 +298,15 @@ button:hover {
 }
 
 .sticky-note-delete-icon > a {
-    font-size: x-large;
+    font-size: large;
     text-decoration: none;
     display: flex;
     width: 25px;
+    color: rgb(235, 100, 100);
+}
+
+.sticky-note-delete-icon > a:hover {
+    color: rgb(163, 64, 64);
 }
 
 .sticky-note-delete-icon > a > i {
