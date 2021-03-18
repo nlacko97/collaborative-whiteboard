@@ -16,12 +16,15 @@ MongoClient.connect(uri, {
     if (err) throw err;
     let dbo = db.db(process.env.DB_DATABASE);
     console.log("Connected to database");
-    dbo.collection('operations').countDocuments((err, count) => {
+
+    // for dev env
+    dbo.collection('sessions').countDocuments((err, res) => {
         if (err) throw err;
-        if (count) {
-            dbo.collection('operations').drop((err) => {if (err) throw err;});
+        if (res) {
+            dbo.collection('sessions').drop();
         }
     })
+
     app.use(express.static(__dirname + '/public'));
 
     function onConnection(socket) {
@@ -32,19 +35,41 @@ MongoClient.connect(uri, {
                 endSessionForAll(socket);
             }
         });
-
+        
         socket.on('join-session', joinSession);
         socket.on('end-session', (message) => {
             if (message.connectionId == hostUserId) {
+                hostUserId = -1;
                 endSessionForAll(socket);
             } else { // "end session" event is received from a regular user
                 //TODO we don't have to do anything in this case yet;
             }
         });
-        socket.on('new-client-request-decision', (data) => {
-            io.to(data.clientId).emit("new-client-request-decision", {
-                accepted: data.accepted
+        socket.on('new-client-request-decision', (data)  => {
+            
+            dbo.collection('operations').find({}).toArray((err, docs) => {
+                console.log(docs);
             })
+            dbo.collection('operations').find({}).toArray((err, res) => {
+                if (err) throw err;
+                let moves = res;
+                if (data.accepted) {
+                    dataToSend = {
+                        accepted: data.accepted,
+                        moves: moves,
+                        stickyNotesHTML: data.stickyNotesHTML,
+                        imageCommentsHTML: data.imageCommentsHTML,
+                        imageCommentButtonsHTML: data.imageCommentButtonsHTML,
+                        imageCanvasState: data.imageCanvasState
+                    }
+                } else {
+                    dataToSend = {
+                        accepted: data.accepted
+                    }
+                }
+                io.to(data.clientId).emit("new-client-request-decision", dataToSend)
+            });
+
         })
 
         socket.on('freehand-drawing', (message) => {
@@ -207,21 +232,32 @@ MongoClient.connect(uri, {
 
     function endSessionForAll(socket) {
         // delete session
-        dbo.collection('sessions').deleteOne((err, res) => {
+        console.log("entering end session for all function");
+        dbo.collection('sessions').countDocuments((err, count) => {
             if (err) throw err;
-            console.log("session ended");
-
-            // delete data (operations) from session
-            dbo.collection('operations').remove((err, res) => {
-                if (err) throw err;
-                console.log("all operations from previous session were deleted");
-
-                // emit disconnect for everyone
-                socket.broadcast.emit("broadcast", {
-                    type: 'host-left'
+            if (count) {
+                dbo.collection('sessions').deleteOne((err, res) => {
+                    if (err) throw err;
+                    console.log("session ended");
+        
+                    // delete data (operations) from session
+                    dbo.collection('operations').countDocuments((err, res) => {
+                        if (err) throw err;
+                        if (res) {
+                            dbo.collection('operations').drop((err) => {
+                                if (err) throw err;
+                                console.log("all operations from previous session were deleted");
+                    
+                                // emit disconnect for everyone
+                                socket.broadcast.emit("broadcast", {
+                                    type: 'host-left'
+                                });
+                            });
+                        }
+                    })
                 });
-            });
-        });
+            }
+        })
     }
 })
 

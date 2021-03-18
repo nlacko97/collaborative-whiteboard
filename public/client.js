@@ -47,6 +47,9 @@ window.onload = function () {
     let $eraserLink = $("#eraser");
     let $undoLink = $("#undo");
     let $downloadLink = $("#download")
+    let $imageCommentPanelDiv = $("#image-comments-pannel");
+    let $stickyNotesDiv = $("#sticky-notes-container");
+    let $imageCommentButtonDiv = $("#image-comment-buttons-container");
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -78,7 +81,7 @@ window.onload = function () {
     })
 
     $downloadLink.on('click', () => {
-        window.scrollTo(0,0);
+        window.scrollTo(0, 0);
         html2canvas($whiteboardDivv).then(function (canvasForScreen) {
             var link = document.createElement('a');
             link.download = 'whiteboard.png';
@@ -107,10 +110,18 @@ window.onload = function () {
             confirmBox.remove();
         })
         $(yes).on('click', () => {
+            // send html content for sticky notes
+            // send html content of image comments div
+            // send image canvas as image
+            // send image comment buttons
             socket.emit('new-client-request-decision', {
                 hostId: socket.id,
                 accepted: true,
-                clientId: data.connectionId
+                clientId: data.connectionId,
+                stickyNotesHTML: $stickyNotesDiv.html(),
+                imageCommentsHTML: $imageCommentPanelDiv.html(),
+                imageCanvasState: canvasBackground.toDataURL(),
+                imageCommentButtonsHTML: $imageCommentButtonDiv.html()
             })
             notyf.success(`Accepted user ${data.connectionId} to the session!`);
         })
@@ -130,9 +141,21 @@ window.onload = function () {
             $whiteboardDiv.show();
             $toolsListDiv.show();
             setCanvasCoordinates();
+            console.log(data.moves);
+            console.log(data.stickyNotesHTML);
+            console.log(data.imageCommentsHTML);
             notyf.success("Successfully joined session!");
             sessionStarted = true;
             $(endSessionButton).show();
+            // draw first canvas
+            moves = data.moves;
+            reDrawCanvas();
+            // draw image canvas
+            var img = new Image();
+            img.onload = function () {
+                contextBackground.drawImage(img, 0, 0, canvasBackground.width, canvasBackground.height);
+            }
+            img.src = data.imageCanvasState;
         } else {
             $loadingStateDiv.hide();
             $initialStateDiv.show();
@@ -469,229 +492,231 @@ window.onload = function () {
             stickyNoteId: sticky_note_id
         });
     });
-}
-
-function setMoveStickyNoteListeners($stickyNote, socket) {
-    $stickyNote.mousedown(moveStickyNoteMouseDown);
-
-    function setGlobalVariables(object) {
-        stickyNoteBeingMoved = object;
-        initialTop = object.position().top;
-        initialLeft = object.position().left;
-        initialBottom = object.position().top + object.height();
-        initialRight = object.position().left + object.width();
-        var mouseX = event.clientX;
-        var mouseY = event.clientY;
-        globalTopDifference = mouseY - initialTop;
-        globalLeftDifference = mouseX - initialLeft;
-        globalBottomDifference = initialBottom - mouseY;
-        globalRightDifference = initialRight - mouseX;
-        setCanvasCoordinates();
-    }
 
 
-    function moveStickyNoteMouseDown(event) {
-        setGlobalVariables($(this));
-        $(this).css("zIndex", 200);
-        $(this).mousemove(moveStickyNoteMouseMove);
-        $("#myBody").mousemove(myBodyMouseMove);
-        stickyNoteBeingMoved.off("mouseup");
-        stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
-        $("#myBody").off("mouseup");
-        $("#myBody").mouseup(myBodyMouseUp);
-    }
+    function setMoveStickyNoteListeners($stickyNote, socket) {
+        $stickyNote.mousedown(moveStickyNoteMouseDown);
 
-    function moveStickyNoteMouseMove(event) {
-        doWhenMouseMoved();
-        $(this).off("mouseup");
-        $(this).mouseup(moveStickyNoteMouseUp);
-    }
-
-    function myBodyMouseMove(event) {
-        doWhenMouseMoved(stickyNoteBeingMoved);
-        stickyNoteBeingMoved.off("mouseup");
-        stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
-        $(this).off("mouseup");
-        $(this).mouseup(myBodyMouseUp);
-    }
-
-    function doWhenMouseMoved() {
-        var mouseX = event.clientX;
-        var mouseY = event.clientY;
-        var stickyNoteBottom = stickyNoteBeingMoved.position().top + stickyNoteBeingMoved.height();
-        var stickyNoteRight = stickyNoteBeingMoved.position().left + stickyNoteBeingMoved.width();
-
-        var top = mouseY - globalTopDifference;
-        var left = mouseX - globalLeftDifference;
-        var bottom = mouseY + globalBottomDifference;
-        var right = mouseX + globalRightDifference;
-
-        if (top <= canvasTop) {
-            top = canvasTop + 20;
+        function setGlobalVariables(object) {
+            stickyNoteBeingMoved = object;
+            initialTop = object.position().top;
+            initialLeft = object.position().left;
+            initialBottom = object.position().top + object.height();
+            initialRight = object.position().left + object.width();
+            var mouseX = event.clientX;
+            var mouseY = event.clientY;
+            globalTopDifference = mouseY - initialTop;
+            globalLeftDifference = mouseX - initialLeft;
+            globalBottomDifference = initialBottom - mouseY;
+            globalRightDifference = initialRight - mouseX;
+            setCanvasCoordinates();
         }
-        if (left <= canvasLeft) {
-            left = canvasLeft + 20;
+
+
+        function moveStickyNoteMouseDown(event) {
+            setGlobalVariables($(this));
+            $(this).css("zIndex", 200);
+            $(this).mousemove(moveStickyNoteMouseMove);
+            $("#myBody").mousemove(myBodyMouseMove);
+            stickyNoteBeingMoved.off("mouseup");
+            stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
+            $("#myBody").off("mouseup");
+            $("#myBody").mouseup(myBodyMouseUp);
         }
-        if (bottom >= canvasBottom) {
-            top = canvasBottom - stickyNoteBeingMoved.height() - 20;
+
+        function moveStickyNoteMouseMove(event) {
+            doWhenMouseMoved();
+            $(this).off("mouseup");
+            $(this).mouseup(moveStickyNoteMouseUp);
         }
-        if (right >= canvasRight) {
-            left = canvasRight - stickyNoteBeingMoved.width() - 20;
+
+        function myBodyMouseMove(event) {
+            doWhenMouseMoved(stickyNoteBeingMoved);
+            stickyNoteBeingMoved.off("mouseup");
+            stickyNoteBeingMoved.mouseup(moveStickyNoteMouseUp);
+            $(this).off("mouseup");
+            $(this).mouseup(myBodyMouseUp);
         }
-        stickyNoteBeingMoved.css({ top: top, left: left });
 
-        // Broadcast sticky note movement
-        socket.emit('move-sticky-note', {
-            stickyNoteId: stickyNoteBeingMoved.attr('id'),
-            top: top,
-            left: left
-        });
-    }
+        function doWhenMouseMoved() {
+            var mouseX = event.clientX;
+            var mouseY = event.clientY;
+            var stickyNoteBottom = stickyNoteBeingMoved.position().top + stickyNoteBeingMoved.height();
+            var stickyNoteRight = stickyNoteBeingMoved.position().left + stickyNoteBeingMoved.width();
 
-    function moveStickyNoteMouseUp(event) {
-        $(this).off("mousemove");
-        $(this).off("mouseup");
-        $(this).css("zIndex", 1);
-    }
+            var top = mouseY - globalTopDifference;
+            var left = mouseX - globalLeftDifference;
+            var bottom = mouseY + globalBottomDifference;
+            var right = mouseX + globalRightDifference;
 
-    function myBodyMouseUp(event) {
-        stickyNoteBeingMoved.off("mousemove");
-        stickyNoteBeingMoved.off("mouseup");
-        stickyNoteBeingMoved.css("zIndex", 1);
-        $(this).off("mousemove");
-        $(this).off("mouseup");
-    }
-}
+            if (top <= canvasTop) {
+                top = canvasTop + 20;
+            }
+            if (left <= canvasLeft) {
+                left = canvasLeft + 20;
+            }
+            if (bottom >= canvasBottom) {
+                top = canvasBottom - stickyNoteBeingMoved.height() - 20;
+            }
+            if (right >= canvasRight) {
+                left = canvasRight - stickyNoteBeingMoved.width() - 20;
+            }
+            stickyNoteBeingMoved.css({ top: top, left: left });
 
-function setEditStickyNoteListeners($stickyNote, socket) {
-    $stickyNote.on('input', function (event) {
-        // Broadcast the addition of the sticky note
-        socket.emit('edit-sticky-note', {
-            stickyNoteId: $stickyNote.attr('id'),
-            newText: event.target.innerText
-        });
-    });
-}
-
-function setEditImageCommentListeners($imageComment, socket) {
-    $imageComment.on('input', function (event) {
-        // Broadcast the addition of the imageComment
-        socket.emit('edit-image-comment', {
-            commentId: $imageComment.attr('id'),
-            newText: event.target.innerText
-        });
-    });
-}
-
-function setCanvasCoordinates() {
-    // Set canvas coordinates
-    canvasTop = $("#canvas").position().top;
-    canvasLeft = $("#canvas").position().left;
-    canvasBottom = $("#canvas").position().top + $("#canvas").height();
-    canvasRight = $("#canvas").position().left + $("#canvas").width();
-}
-
-function addNewStickyNote(stickyNoteId, author, socket) {
-    var $stickyNote = $('<div class="sticky-note"></div>');
-    $stickyNote.attr('id', stickyNoteId);
-    var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
-    var $textareaDiv = $('<div class="textarea" contenteditable></div>');
-    var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
-    var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-delete-bin-line"></i></a></div>');
-    $stickyNoteHeader.append($createdByHeader).append($stickyNoteDeleteDiv);
-    $stickyNote.append($stickyNoteHeader).append($textareaDiv);
-    $("#whiteboard").append($stickyNote);
-
-    // Add event listeners for delete sticky note icon
-    setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket);
-
-    // Add event listeners for moving sticky note
-    setMoveStickyNoteListeners($stickyNote, socket);
-
-    // Add event listeners for editing sticky note
-    setEditStickyNoteListeners($stickyNote, socket);
-}
-
-function createImageCommentsContainers(commentContainerId, startY, startX, socket) {
-    // Add "show comments" button and comment container
-    var $showCommentsButton = $(
-        '<button class="show-comments-button">Show comments</button>'
-    );
-    $("#whiteboard").append($showCommentsButton);
-    $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
-
-    var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
-    var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
-    var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
-    var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
-    $commentsInnerContainer.attr('id', commentContainerId);
-    var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
-    $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
-    $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
-    $("#image-comments-pannel").append($commentsOuterContainer);
-
-    $showCommentsButton.click(function () {
-        $("#image-comments-pannel").find('.comments-outer-container').each(function () {
-            $(this).hide();
-        });
-        $commentsOuterContainer.show();
-    });
-
-    $hideCommentsButton.click(function () {
-        $commentsOuterContainer.hide();
-    });
-
-    addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, commentContainerId, socket);
-}
-
-function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, comment_container_id, socket) {
-    $addCommentButton.click(function () {
-        id_counter += 1;
-        var comment_id = String(socket.id) + '-' + String(id_counter);
-        var $comment = $(
-            '<div id="' + comment_id + '" class="image-comment">' +
-            '<div>Created by:<br/>' + socket.id + '</div>' +
-            '<div class="textarea" contenteditable></div>' +
-            '</div>'
-        );
-        $commentsInnerContainer.append($comment);
-
-        // Add event listeners for editing image comment
-        setEditImageCommentListeners($comment, socket);
-
-        // Broadcast the addition of the sticky note
-        socket.emit('new-image-comment', {
-            author: socket.id,
-            commentId: comment_id,
-            commentContainerId: comment_container_id
-        });
-    });
-}
-
-function setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket) {
-    $stickyNoteDeleteDiv.click(function () {
-        $("body").append("<div class=\"confirm-dialog confirm-dialog-delete-sticky-note-" + stickyNoteId + "\"></div>")
-        var confirmBox = $(`.confirm-dialog-delete-sticky-note-${stickyNoteId}`);
-        $(confirmBox).append("<div class=\"message message-delete-sticky-note-" + stickyNoteId + "\"></div>");
-        var msg = $(`.message-delete-sticky-note-${stickyNoteId}`);
-        $(msg).text(`Do you really want to delete this sticky note?`);
-        $(confirmBox).append(`<button id="yes-delete-sticky-note-${stickyNoteId}">Yes</button>`);
-        var yes = $(`#yes-delete-sticky-note-${stickyNoteId}`);
-        $(confirmBox).append(`<button id="no-delete-sticky-note-${stickyNoteId}">No</button>`);
-        var no = $(`#no-delete-sticky-note-${stickyNoteId}`);
-        $(confirmBox).find(`#yes-delete-sticky-note-${stickyNoteId}, #no-delete-sticky-note-${stickyNoteId}`).unbind().click(() => {
-            confirmBox.remove();
-        })
-        $(yes).on('click', () => {
-            $stickyNote.remove();
-            // broadcast delete event
-            socket.emit('delete-sticky-note', {
-                stickyNoteId: stickyNoteId
+            // Broadcast sticky note movement
+            socket.emit('move-sticky-note', {
+                stickyNoteId: stickyNoteBeingMoved.attr('id'),
+                top: top,
+                left: left
             });
-            notyf.success(`Sticky note successfully deleted!`);
-        })
-        $(no).on('click', () => {
-            notyf.error(`Sticky note has not been deleted!`);
+        }
+
+        function moveStickyNoteMouseUp(event) {
+            $(this).off("mousemove");
+            $(this).off("mouseup");
+            $(this).css("zIndex", 1);
+        }
+
+        function myBodyMouseUp(event) {
+            stickyNoteBeingMoved.off("mousemove");
+            stickyNoteBeingMoved.off("mouseup");
+            stickyNoteBeingMoved.css("zIndex", 1);
+            $(this).off("mousemove");
+            $(this).off("mouseup");
+        }
+    }
+
+    function setEditStickyNoteListeners($stickyNote, socket) {
+        $stickyNote.on('input', function (event) {
+            // Broadcast the addition of the sticky note
+            socket.emit('edit-sticky-note', {
+                stickyNoteId: $stickyNote.attr('id'),
+                newText: event.target.innerText
+            });
         });
-    });
+    }
+
+    function setEditImageCommentListeners($imageComment, socket) {
+        $imageComment.on('input', function (event) {
+            // Broadcast the addition of the imageComment
+            socket.emit('edit-image-comment', {
+                commentId: $imageComment.attr('id'),
+                newText: event.target.innerText
+            });
+        });
+    }
+
+    function setCanvasCoordinates() {
+        // Set canvas coordinates
+        canvasTop = $("#canvas").position().top;
+        canvasLeft = $("#canvas").position().left;
+        canvasBottom = $("#canvas").position().top + $("#canvas").height();
+        canvasRight = $("#canvas").position().left + $("#canvas").width();
+    }
+
+    function addNewStickyNote(stickyNoteId, author, socket) {
+        var $stickyNote = $('<div class="sticky-note"></div>');
+        $stickyNote.attr('id', stickyNoteId);
+        var $stickyNoteHeader = $('<div class="sticky-note-header"></div>');
+        var $textareaDiv = $('<div class="textarea" contenteditable></div>');
+        var $createdByHeader = $('<div class="created-by-header">Created by:<br/>' + author + '</div>');
+        var $stickyNoteDeleteDiv = $('<div class="sticky-note-delete-icon"><a href="#"><i class="ri-delete-bin-line"></i></a></div>');
+        $stickyNoteHeader.append($createdByHeader).append($stickyNoteDeleteDiv);
+        $stickyNote.append($stickyNoteHeader).append($textareaDiv);
+        // $("#whiteboard").append($stickyNote);
+        $("#sticky-notes-container").append($stickyNote);
+
+        // Add event listeners for delete sticky note icon
+        setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket);
+
+        // Add event listeners for moving sticky note
+        setMoveStickyNoteListeners($stickyNote, socket);
+
+        // Add event listeners for editing sticky note
+        setEditStickyNoteListeners($stickyNote, socket);
+    }
+
+    function createImageCommentsContainers(commentContainerId, startY, startX, socket) {
+        // Add "show comments" button and comment container
+        var $showCommentsButton = $(
+            '<button class="show-comments-button">Show comments</button>'
+        );
+        $imageCommentButtonDiv.append($showCommentsButton);
+        $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
+
+        var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
+        var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
+        var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
+        var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
+        $commentsInnerContainer.attr('id', commentContainerId);
+        var $commentsOuterContainer = $('<div class="comments-outer-container"></div>');
+        $commentsButtonsContainer.append($addCommentButton).append($hideCommentsButton);
+        $commentsOuterContainer.append($commentsButtonsContainer).append($('<hr>')).append($commentsInnerContainer);
+        $("#image-comments-pannel").append($commentsOuterContainer);
+
+        $showCommentsButton.click(function () {
+            $("#image-comments-pannel").find('.comments-outer-container').each(function () {
+                $(this).hide();
+            });
+            $commentsOuterContainer.show();
+        });
+
+        $hideCommentsButton.click(function () {
+            $commentsOuterContainer.hide();
+        });
+
+        addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, commentContainerId, socket);
+    }
+
+    function addFunctionalityToAddCommentButton($addCommentButton, $commentsInnerContainer, comment_container_id, socket) {
+        $addCommentButton.click(function () {
+            id_counter += 1;
+            var comment_id = String(socket.id) + '-' + String(id_counter);
+            var $comment = $(
+                '<div id="' + comment_id + '" class="image-comment">' +
+                '<div>Created by:<br/>' + socket.id + '</div>' +
+                '<div class="textarea" contenteditable></div>' +
+                '</div>'
+            );
+            $commentsInnerContainer.append($comment);
+
+            // Add event listeners for editing image comment
+            setEditImageCommentListeners($comment, socket);
+
+            // Broadcast the addition of the sticky note
+            socket.emit('new-image-comment', {
+                author: socket.id,
+                commentId: comment_id,
+                commentContainerId: comment_container_id
+            });
+        });
+    }
+
+    function setDeleteStickyNoteListeners($stickyNoteDeleteDiv, $stickyNote, stickyNoteId, socket) {
+        $stickyNoteDeleteDiv.click(function () {
+            $("body").append("<div class=\"confirm-dialog confirm-dialog-delete-sticky-note-" + stickyNoteId + "\"></div>")
+            var confirmBox = $(`.confirm-dialog-delete-sticky-note-${stickyNoteId}`);
+            $(confirmBox).append("<div class=\"message message-delete-sticky-note-" + stickyNoteId + "\"></div>");
+            var msg = $(`.message-delete-sticky-note-${stickyNoteId}`);
+            $(msg).text(`Do you really want to delete this sticky note?`);
+            $(confirmBox).append(`<button id="yes-delete-sticky-note-${stickyNoteId}">Yes</button>`);
+            var yes = $(`#yes-delete-sticky-note-${stickyNoteId}`);
+            $(confirmBox).append(`<button id="no-delete-sticky-note-${stickyNoteId}">No</button>`);
+            var no = $(`#no-delete-sticky-note-${stickyNoteId}`);
+            $(confirmBox).find(`#yes-delete-sticky-note-${stickyNoteId}, #no-delete-sticky-note-${stickyNoteId}`).unbind().click(() => {
+                confirmBox.remove();
+            })
+            $(yes).on('click', () => {
+                $stickyNote.remove();
+                // broadcast delete event
+                socket.emit('delete-sticky-note', {
+                    stickyNoteId: stickyNoteId
+                });
+                notyf.success(`Sticky note successfully deleted!`);
+            })
+            $(no).on('click', () => {
+                notyf.error(`Sticky note has not been deleted!`);
+            });
+        });
+    }
 }
