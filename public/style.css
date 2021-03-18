@@ -77,9 +77,48 @@ a.selected {
 #loading-state {
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input {
+    margin-top: 0.5rem;
+    /* border-radius: 10px;
+    border: 10px solid;
+    border-image-slice: 1;
+    border-image-source: linear-gradient(to left, #743ad5, #d53a9d);
+    background-color: rgb(235, 235, 235);
+    padding: 5px 3px; */
+
+    background-color: transparent;
+    box-shadow: none;
+    border: 0;
+    border-bottom: 3px solid #54e490;
+    color: #000;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    outline: 0 none;
+    padding: 0.25rem 0.1rem;
+}
+
+input:focus {
+    outline: none;
+}
+
+#username-error-message {
+    font-size: smaller;
+    color: rgb(196, 93, 93);
 }
 
 button {
+    width: fit-content;
     border-radius: 20px;
     border: 2px solid grey;
     margin: 2rem;
@@ -122,6 +161,12 @@ button:hover {
 .confirm-dialog .message {
     text-align: center;
 }
+
+.confirm-dialog > .dialog-header {
+    font-weight: 400;
+    font-size: 2em;
+}
+
 #whiteboard > button:hover {
     background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
 }
@@ -262,7 +307,6 @@ button:hover {
 .sticky-note-delete-icon > a > i {
     margin: auto;
 }
-
 
 .host-user-info {
     position: absolute;

@@ -35,7 +35,7 @@ MongoClient.connect(uri, {
                 endSessionForAll(socket);
             }
         });
-        
+
         socket.on('join-session', joinSession);
         socket.on('end-session', (message) => {
             if (message.connectionId == hostUserId) {
@@ -45,8 +45,8 @@ MongoClient.connect(uri, {
                 //TODO we don't have to do anything in this case yet;
             }
         });
-        socket.on('new-client-request-decision', (data)  => {
-            
+        socket.on('new-client-request-decision', (data) => {
+
             dbo.collection('operations').find({}).toArray((err, docs) => {
                 console.log(docs);
             })
@@ -113,7 +113,7 @@ MongoClient.connect(uri, {
 
         socket.on('undo', (data) => {
             // DELETE FROM DATABASE
-            dbo.collection('operations').deleteOne({moveId: data.moveId}, (err, res) => {
+            dbo.collection('operations').deleteOne({ moveId: data.moveId }, (err, res) => {
                 if (err) throw err;
                 console.log("session ended");
             })
@@ -197,10 +197,12 @@ MongoClient.connect(uri, {
             console.log("existing sessions: " + count);
 
             if (count) {
-                // TODO: implement joining an existing session functionality
                 io.to(hostUserId).emit("new-client-request", {
-                    message: `New client with connection id #${data.connectionId} would like to connect`,
-                    connectionId: data.connectionId
+                    message: `<p class="dialog-header">New connection request received!</p>
+                    <p>Username: <b>${data.username}</b> <br>
+                        Connection ID: <b>${data.connectionId}</b></p>`,
+                    connectionId: data.connectionId,
+                    username: data.username
                 })
                 callback({
                     status: "waiting"
@@ -239,7 +241,7 @@ MongoClient.connect(uri, {
                 dbo.collection('sessions').deleteOne((err, res) => {
                     if (err) throw err;
                     console.log("session ended");
-        
+
                     // delete data (operations) from session
                     dbo.collection('operations').countDocuments((err, res) => {
                         if (err) throw err;
@@ -247,7 +249,7 @@ MongoClient.connect(uri, {
                             dbo.collection('operations').drop((err) => {
                                 if (err) throw err;
                                 console.log("all operations from previous session were deleted");
-                    
+
                                 // emit disconnect for everyone
                                 socket.broadcast.emit("broadcast", {
                                     type: 'host-left'
