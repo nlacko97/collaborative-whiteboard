@@ -233,7 +233,8 @@ window.onload = function () {
                     moves.push({
                         moves: message.moves,
                         _id: message._id,
-                        userId: message.userId
+                        userId: message.userId,
+                        moveType: message.moveType
                     });
                     break;
                 case 'erase':
