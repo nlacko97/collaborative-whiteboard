@@ -51,6 +51,8 @@ window.onload = function () {
     let $usernameInput = $("#username");
     let $usernameErrorMessage = $("#username-error-message");
     $usernameErrorMessage.hide();
+    let $participantsListDiv = $(".participants-list");
+    let participants = [];
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -106,7 +108,11 @@ window.onload = function () {
                 className: 'toast-custom-notyf',
                 icon: false,
                 dismissible: false,
-                message: `<h1> Collaborative Whiteboard application</h1>
+                message: `
+                <div class="help-header">
+                <h1> Collaborative Whiteboard application</h1>
+                <a href="#" class="close-help"><i class="ri-close-line"></i></a>
+                </div>
                 <div style='font-weight: bold'>This collaborative whiteboard application allows you and your friends to communicate in real time using an interactive whiteboard that supports the following functionalities:</div>
                 <ul>
                 <li><span style="font-weight: bold">Draw</span> <div class="tool" style="display: inline; margin-top: 5px"><a href="#"><i class="ri-brush-line"></i></a></div> - you can perform a free-hand drawing on the whiteboard with a brush utensil, using your mouse. Currently, only one brush size and color are supported.</li>
@@ -128,12 +134,14 @@ window.onload = function () {
                 <div style="font-weight: bold; display: inline">If you want to check out the code of this collaborative whiteboard application, click the following icon to access our github repository: </div><div class="tool" style="display: inline; margin-top: 5px"><a href="https://github.com/nlacko97/collaborative-whiteboard" target="_blank"><i class="ri-github-fill"></i></a></div>
                 <br>
                 <div style="font-weight: bold; display: inline">If you notice any issue with this application, you can help us by reporting it: </div><div class="tool" style="display: inline; margin-top: 5px"><a href="https://github.com/nlacko97/collaborative-whiteboard/issues" target="_blank"><i class="ri-github-fill"></i></a></div>
-                <br><br>
-                <button id="close-help">Close help</button>
+                <br>
+                <div class="help-footer">
+                <a href="#" class="close-help">Close help</a>
+                </div>
                 `
             });
             helpOpened = true;
-            $("#close-help").click(() => {
+            $(".close-help").click(() => {
                 notyf.dismiss(notification);
                 helpOpened = false;
             })
@@ -167,6 +175,7 @@ window.onload = function () {
                 hostId: socket.id,
                 accepted: true,
                 clientId: data.connectionId,
+                username: data.username,
                 stickyNotesHTML: $stickyNotesDiv.html(),
                 imageCommentsHTML: $imageCommentPanelDiv.html(),
                 imageCanvasState: canvasBackground.toDataURL(),
