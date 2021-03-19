@@ -381,6 +381,10 @@ window.onload = function () {
                 context.arc(lastEvent.offsetX, lastEvent.offsetY, 20, 0, Math.PI * 2, false);
                 context.fill();
                 // Emit erase event
+                currentMove.push({
+                    lastX: lastEvent.offsetX,
+                    lastY: lastEvent.offsetY,
+                });
                 var dataToSend = {
                     arcX: lastEvent.offsetX,
                     arcY: lastEvent.offsetY
@@ -399,14 +403,16 @@ window.onload = function () {
 
         var dataToSend = {
             userId: socket.id,
-            moves: moveToSave
+            moves: moveToSave,
+            moveType: mode
         }
         var callback = (data) => {
             console.log("saving move");
             moves.push({
                 moves: moveToSave,
                 _id: data._id,
-                userId: socket.id
+                userId: socket.id,
+                moveType: mode
             });
         }
         sendData(socket, 'new-move', dataToSend, callback);
@@ -435,16 +441,25 @@ window.onload = function () {
 
     const reDrawCanvas = () => {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.strokeStyle = 'black';
-        context.lineWidth = 1;
-        context.globalCompositeOperation = "source-over";
         moves.forEach((move) => {
-            move.moves.forEach((m) => {
-                context.beginPath();
-                context.moveTo(m.lastX, m.lastY);
-                context.lineTo(m.currX, m.currY);
-                context.stroke();
-            })
+            if (move.moveType == "brush") {
+                context.strokeStyle = 'black';
+                context.lineWidth = 1;
+                context.globalCompositeOperation = "source-over";
+                move.moves.forEach((m) => {
+                    context.beginPath();
+                    context.moveTo(m.lastX, m.lastY);
+                    context.lineTo(m.currX, m.currY);
+                    context.stroke();
+                })
+            } else if (move.moveType == "eraser") {
+                context.globalCompositeOperation = 'destination-out';
+                move.moves.forEach((m) => {
+                    context.beginPath();
+                    context.arc(m.lastX, m.lastY, 20, 0, Math.PI * 2, false);
+                    context.fill();
+                })
+            }
         })
     };
 
