@@ -100,7 +100,8 @@ MongoClient.connect(uri, {
             data = decryptMessage(data);
             let newMove = {
                 userId: data.userId,
-                moves: data.moves
+                moves: data.moves,
+                moveType: data.moveType
             }
             dbo.collection('operations').insertOne(newMove, (err, records) => {
                 if (err) throw err;
@@ -108,7 +109,8 @@ MongoClient.connect(uri, {
                     type: "new-move",
                     _id: records.ops[0]._id,
                     moves: newMove.moves,
-                    userId: newMove.userId
+                    userId: newMove.userId,
+                    moveType: newMove.moveType
                 }
                 broadcastData(socket, dataToSend);
                 callback({
