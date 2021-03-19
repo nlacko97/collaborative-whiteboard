@@ -23,12 +23,12 @@ MongoClient.connect(uri, {
     console.log("Connected to database");
 
     // for dev env
-//    dbo.collection('sessions').countDocuments((err, res) => {
-//        if (err) throw err;
-//        if (res) {
-//            dbo.collection('sessions').drop();
-//        }
-//    })
+    dbo.collection('sessions').countDocuments((err, res) => {
+        if (err) throw err;
+        if (res) {
+            dbo.collection('sessions').drop();
+        }
+    })
 
     app.use(express.static(__dirname + '/public'));
 

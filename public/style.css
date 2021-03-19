@@ -333,6 +333,8 @@ button:hover {
         height: 50em;
         width: 50em;
     } */
+    overflow-y: scroll !important;
+    height: 100% !important;
 }
 
 #close-help {
