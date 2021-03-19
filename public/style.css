@@ -47,8 +47,8 @@ body {
 
 .participant {
     background-color: #51a56d;
-    border: 2px solid #3b7a50;
-    color: white;
+    border: 2px solid #565c58;
+    color: rgb(42, 49, 42);
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -58,6 +58,15 @@ body {
     justify-content: center;
     cursor: pointer;
 }
+
+.participant-username {
+    display: none;
+}
+
+.participant:hover + .participant-username {
+    background-color: #48e5da;
+}
+
 
 .participants-list > .participant:not(:first-child) {
     margin-left: 10px;
@@ -343,10 +352,6 @@ button:hover {
     position: absolute;
     top: 0;
     left: 0;
-}
-
-#end-session {
-    display: none;
 }
 
 .toast-custom-notyf {

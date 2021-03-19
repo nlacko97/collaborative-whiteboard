@@ -52,7 +52,6 @@ window.onload = function () {
     let $usernameErrorMessage = $("#username-error-message");
     $usernameErrorMessage.hide();
     let $participantsListDiv = $(".participants-list");
-    let participants = [];
 
     // Specifications
     context.strokeStyle = 'black'; // initial brush color
@@ -203,7 +202,7 @@ window.onload = function () {
             notyf.success("Successfully joined session!");
             sessionStarted = true;
             encryptionKey = data.key;
-            $(endSessionButton).show();
+            refreshParticipantsList(data.sessionParticipants);
             bringBoardToCurrentState(data, socket);
         } else {
             $loadingStateDiv.hide();
@@ -239,6 +238,7 @@ window.onload = function () {
                 isHost = true;
                 sessionStarted = true;
                 encryptionKey = response.key;
+                refreshParticipantsList(response.sessionParticipants);
                 $(endSessionButton).show();
             }
         });
@@ -326,6 +326,9 @@ window.onload = function () {
                     break;
                 case 'host-left':
                     window.location.reload(true);
+                    break;
+                case 'update-participants':
+                    refreshParticipantsList(message.sessionParticipants);
                     break;
                 default:
                     console.log("Unknown broadcast message type");
@@ -886,4 +889,16 @@ window.onload = function () {
             socket.emit(eventName, dataToSend);
         }
     }
+
+    const refreshParticipantsList = (participants) => {
+        $participantsListDiv.html("");
+        participants.forEach(p => {
+            $participantsListDiv.append(`
+                <div class="participant" id="participant-${p.id}" style="background-color: ${p.backgroundColor};" title="${p.username}">
+                    ${p.username.charAt(0)}
+                </div>
+                <div class="participant-username">${p.username}</div>
+            `)
+        });
+    };
 }

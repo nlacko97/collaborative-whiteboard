@@ -14,6 +14,7 @@ let hostUserId;
 let hostDisconnectedTriggered;
 let hostEndSessionTriggered;
 let encryptionKey;
+let sessionParticipants = [];
 
 MongoClient.connect(uri, {
     useUnifiedTopology: true
@@ -36,11 +37,18 @@ MongoClient.connect(uri, {
         console.log("new client :" + socket.id);
         socket.on('disconnect', () => {
             console.log("disconnect user");
+            pIndex = sessionParticipants.findIndex((p) => { return p.id == socket.id });
+            if (pIndex != -1) {
+                sessionParticipants.splice(pIndex, 1);
+                broadcastData(socket, {
+                    type: 'update-participants',
+                    sessionParticipants: sessionParticipants
+                });
+            }
+            console.log(sessionParticipants);
             if (socket.id == hostUserId) {
-                console.log("am ajuns in disconnect");
                 hostDisconnectedTriggered = true;
                 if (!hostEndSessionTriggered) {
-                    console.log("sterg sesiunea din disconnect");
                     hostUserId = -1;
                     endSessionForAll(socket);
                 }
@@ -52,15 +60,24 @@ MongoClient.connect(uri, {
             console.log('end-session requested');
             if (message.connectionId == hostUserId) {
                 hostEndSessionTriggered = true;
+                sessionParticipants = [];
                 if (!hostDisconnectedTriggered) {
                     hostUserId = -1;
                     endSessionForAll(socket);
                 }
             } else { // "end session" event is received from a regular user
-                //TODO we don't have to do anything in this case yet;
+                pIndex = sessionParticipants.findIndex((p) => { return p.id == socket.id });
+                if (pIndex != -1) {
+                    sessionParticipants.splice(pIndex, 1);
+                    broadcastData(socket, {
+                        type: 'update-participants',
+                        sessionParticipants: sessionParticipants
+                    });
+                }
+                console.log(sessionParticipants);
             }
         });
-        socket.on('new-client-request-decision', (data)  => {
+        socket.on('new-client-request-decision', (data) => {
             dbo.collection('operations').find({}).toArray((err, res) => {
                 if (err) throw err;
                 let moves = res;
@@ -69,17 +86,28 @@ MongoClient.connect(uri, {
                         accepted: data.accepted,
                         key: encryptionKey,
                         moves: moves,
+                        sessionParticipants: sessionParticipants,
                         stickyNotesHTML: data.stickyNotesHTML,
                         imageCommentsHTML: data.imageCommentsHTML,
                         imageCommentButtonsHTML: data.imageCommentButtonsHTML,
                         imageCanvasState: data.imageCanvasState
                     }
+                    sessionParticipants.push({
+                        username: data.username,
+                        id: data.clientId,
+                        backgroundColor: getRandomRGB()
+                    });
+                    console.log(sessionParticipants);
                 } else {
                     dataToSend = {
-                        accepted: data.accepted
+                        accepted: data.accepted,
                     }
                 }
-                io.to(data.clientId).emit("new-client-request-decision", dataToSend)
+                io.to(data.clientId).emit("new-client-request-decision", dataToSend);
+                broadcastData(socket, {
+                    type: 'update-participants',
+                    sessionParticipants: sessionParticipants
+                }, null, true);
             });
 
         })
@@ -248,6 +276,12 @@ MongoClient.connect(uri, {
                     hostUser: data.connectionId
                 }
                 encryptionKey = randomAlphaNumericString(20);
+                sessionParticipants.push({
+                    id: data.connectionId,
+                    username: data.username,
+                    backgroundColor: getRandomRGB()
+                })
+                console.log(sessionParticipants);
                 dbo.collection('sessions').insertOne(newSession, (err, succ) => {
                     if (err) throw err;
                     console.log("new session inserted");
@@ -257,7 +291,8 @@ MongoClient.connect(uri, {
                 });
                 callback({
                     status: "accepted",
-                    key: encryptionKey
+                    key: encryptionKey,
+                    sessionParticipants: sessionParticipants
                 })
             }
 
@@ -300,12 +335,20 @@ MongoClient.connect(uri, {
         })
     }
 
-    function broadcastData(socket, dataToSend, callback) {
+    function broadcastData(socket, dataToSend, callback, toEveryone = false) {
         dataToSend = CryptoJS.AES.encrypt(JSON.stringify(dataToSend), encryptionKey).toString();
-        if (callback) {
-            socket.broadcast.emit("broadcast", dataToSend, callback);
+        if (!toEveryone) {
+            if (callback) {
+                socket.broadcast.emit("broadcast", dataToSend, callback);
+            } else {
+                socket.broadcast.emit("broadcast", dataToSend);
+            }
         } else {
-            socket.broadcast.emit("broadcast", dataToSend);
+            if (callback) {
+                io.emit("broadcast", dataToSend, callback);
+            } else {
+                io.emit("broadcast", dataToSend);
+            }
         }
     }
 
@@ -315,11 +358,18 @@ MongoClient.connect(uri, {
 })
 
 function randomAlphaNumericString(length) {
-   var result           = '';
-   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-   var charactersLength = characters.length;
-   for ( var i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   return result;
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+function getRandomRGB() {
+    var r = Math.floor(Math.random() * (250 - 200 + 1)) + 200;
+    var g = Math.floor(Math.random() * (250 - 200 + 1)) + 200;
+    var b = Math.floor(Math.random() * (250 - 200 + 1)) + 200;
+    return `rgb(${r}, ${g}, ${b})`
 }
