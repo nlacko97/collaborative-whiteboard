@@ -402,11 +402,12 @@ window.onload = function () {
             moves: moveToSave
         }
         var callback = (data) => {
-           moves.push({
-               moves: moveToSave,
-               _id: data._id,
-               userId: socket.id
-           });
+            console.log("saving move");
+            moves.push({
+                moves: moveToSave,
+                _id: data._id,
+                userId: socket.id
+            });
         }
         sendData(socket, 'new-move', dataToSend, callback);
     });

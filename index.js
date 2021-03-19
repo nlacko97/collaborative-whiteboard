@@ -8,6 +8,7 @@ const port = process.env.PORT || 3000;
 
 // initialize Mongo client and create connection uri
 const MongoClient = require('mongodb').MongoClient;
+const { ObjectId } = require('bson');
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER_NAME}.exvpx.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`;
 let hostUserId;
 let hostDisconnectedTriggered;
@@ -113,8 +114,8 @@ MongoClient.connect(uri, {
                 callback({
                     _id: records.ops[0]._id
                 })
+                console.log("new move recorded with id: ", records.ops[0]._id);
             })
-            console.log("new move recorded");
         });
 
         socket.on('erase', (message) => {
@@ -130,7 +131,7 @@ MongoClient.connect(uri, {
         socket.on('undo', (data) => {
             data = decryptMessage(data);
             // DELETE FROM DATABASE
-            dbo.collection('operations').deleteOne({ _id: data._id }, (err, res) => {
+            dbo.collection('operations').deleteOne({ _id: ObjectId(data._id) }, (err, res) => {
                 if (err) throw err;
                 console.log("move deleted");
             })
