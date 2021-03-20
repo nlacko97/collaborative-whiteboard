@@ -57,11 +57,11 @@ body {
     background-color: rgb(var(--grey));
     box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.1);
     /* margin: 0.4rem 5rem; */
-    /* width: 1300px; */
+    /* width: 1150px; */
     margin-left: -23px;
-    margin-top: 80px;
-    width: 46px;
-    height: 2000px;
+    margin-top: 40px;
+    /* width: 46px; */
+    height: 500px;
     padding: 0.2rem 0.1rem;
 }
 
@@ -82,8 +82,8 @@ body {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    max-width: 1000px;
-    margin: 1.2rem 5rem 0.2rem 5rem;
+    max-width: 1150px;
+    margin: 1.2rem 2.5rem 0.2rem 2.5rem;
 }
 
 .participant {
@@ -99,16 +99,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
     margin-right: 10px;
-}
-
-.participant-username {
-    display: none;
-}
-
-.participant:hover + .participant-username {
-    background-color: #48e5da;
 }
 
 .participants-list > .participant:not(:first-child) {
@@ -122,15 +113,16 @@ a.selected {
 
 #whiteboard {
     display: flex;
-    flex-direction: column;
-    margin: 0.4rem 5rem;
+    flex-direction: row;
+    margin: 0.4rem 2.5rem;
     height: 660px;
-    width: 1302px;
+    width: 1452px;
 }
 
 #whiteboard > canvas {
     position: absolute;
     /* border: 2px solid grey; */
+    border-radius: 10px;
     box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -139,14 +131,14 @@ a.selected {
 }
 
 #canvas {
-    background: transparent;
+    /* background: transparent; */
     cursor: url("images/cursor-brush.cur"), auto;
 }
 
 #upload-image-position-selector {
     position: absolute;
     border: 2px solid grey;
-    width: 1000px;
+    width: 1150px;
     height: 650px;
     background-color: rgba(0, 0, 0, 0.3);
     font-size: 50px;
@@ -245,18 +237,26 @@ button:hover {
 .confirm-dialog {
     display: block;
     z-index: 9999;
-    background: linear-gradient(to right, rgba(171, 255, 205, 1), rgba(171, 255, 242, 1));
-    border: 1px solid #aaa;
+    background: rgb(var(--pale));
+    color: rgb(var(--dark-teal));
+    border-radius: 10px;
+    box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.1);
     position: fixed;
     width: 400px;
     left: 50%;
     margin-left: -200px;
-    top: 10px;
+    top: 30px;
     padding: 20px;
     box-sizing: border-box;
     text-align: center;
 }
+
 .confirm-dialog button {
+    font-size: 0.7em;
+    font-weight: 600;
+    padding: 15px 10px;
+}
+/* .confirm-dialog button {
     background-color: #48e5da;
     display: inline-block;
     border-radius: 5px;
@@ -265,7 +265,7 @@ button:hover {
     text-align: center;
     width: 80px;
     cursor: pointer;
-}
+} */
 .confirm-dialog .message {
     text-align: center;
 }
@@ -318,15 +318,20 @@ button:hover {
     width: 280px;
     margin-left: auto;
     order: 2;
+    overflow-y: hidden;
 }
 
 #image-comments-pannel > .comments-outer-container {
-    position: absolute;
-    border: 2px solid grey;
-    height: 650px;
-    width: 280px;
-    overflow: scroll;
+    border-radius: 10px;
+    box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.1);
+    background-color: rgb(var(--grey));
+    height: 100%;
+    overflow-y: scroll;
     display: none;
+}
+
+.comments-outer-container::-webkit-scrollbar {
+    width: 0;
 }
 
 .show-comments-button {
@@ -343,19 +348,25 @@ button:hover {
     cursor: pointer;
 }
 
+.comments-buttons-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
 .comment-button {
-    border-radius: 20px;
-    border: 2px solid grey;
-    margin: 0;
-    padding: 0;
+    border-radius: 5px;
+    border: 2px solid rgb(var(--dark-teal));
+    margin: 0.2rem 3.5rem;
+    padding: 0.2rem;
     text-transform: uppercase;
-    color: rgb(27, 106, 109);
+    color: rgb(var(--dark-teal));
     font-weight: 600;
     font-size: 10px;
-    background: linear-gradient(to right, rgba(171, 255, 205, 0.5), rgba(171, 255, 242, 0.5));
+    background: transparent;
     cursor: pointer;
-    height: 20px;
-    width: 50%;
 }
 
 .image-comment {
