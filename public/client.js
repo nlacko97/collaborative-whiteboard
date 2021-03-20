@@ -894,7 +894,7 @@ window.onload = function () {
         $participantsListDiv.html("");
         participants.forEach(p => {
             $participantsListDiv.append(`
-                <div class="participant" id="participant-${p.id}" style="background-color: ${p.backgroundColor};" title="${p.username}">
+                <div class="participant" id="participant-${p.id}" style="background: linear-gradient(to top right, ${p.backgroundColor}, rgb(var(--light-teal)));" title="${p.username}">
                     ${p.username.charAt(0)}
                 </div>
                 <div class="participant-username">${p.username}</div>

@@ -8,80 +8,89 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
     <title>Collaborative Whiteboard</title>
 </head>
 
 <body id="myBody">
     <div id="title">
         <h4>
-            <span>Collaborative Whiteboard application</span>
+            Collaborative Whiteboard application
         </h4>
     </div>
-    <div class="tools-list">
-        <div class="tool">
-            <a href="#" title="Brush" class="selected" id="brush">
-                <i class="ri-brush-line"></i>
-            </a>
+    <div class="site-content">
+        <div class="participants-list">
         </div>
-        <div class="tool">
-            <a href="#" title="Eraser" id="eraser">
-                <i class="ri-eraser-line"></i>
-            </a>
+        <div id="whiteboard">
+            <div class="tools-list">
+                <div class="tool">
+                    <a href="#" title="Brush" class="selected" id="brush">
+                        <i class="ri-brush-line"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" title="Eraser" id="eraser">
+                        <i class="ri-eraser-line"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" title="Undo" id="undo">
+                        <i class="ri-arrow-go-back-line"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" title="Sticky note">
+                        <i class="ri-sticky-note-line" id="sticky-note"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" title="Upload image">
+                        <label for="imageLoader" style="cursor: pointer;">
+                            <i class="ri-image-line"></i>
+                        </label>
+                        <input type="file" id="imageLoader" name="imageLoader" />
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" title="Download whiteboard" id="download">
+                        <i class="ri-arrow-down-circle-line"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="#" id="help" title="Help">
+                        <i class="ri-question-line"></i>
+                    </a>
+                </div>
+                <div class="tool">
+                    <a href="" title="End session" id="end-session">
+                        <i class="ri-logout-box-r-line"></i>
+                    </a>
+                </div>
+            </div>
+            <div id="sticky-notes-container" style="z-index: 999;"></div>
+            <div id="image-comment-buttons-container" style="z-index: 999;"></div>
+            <canvas id="background-canvas" width="1000px" height="650px"></canvas>
+            <canvas id="canvas" width="1000px" height="650px"></canvas>
+            <div id="image-comments-pannel"></div>
         </div>
-        <div class="tool">
-            <a href="#" title="Undo" id="undo">
-                <i class="ri-arrow-go-back-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#" title="Sticky note">
-                <i class="ri-sticky-note-line" id="sticky-note"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#" title="Upload image">
-                <label for="imageLoader" style="cursor: pointer;">
-                    <i class="ri-image-line"></i>
-                </label>
-                <input type="file" id="imageLoader" name="imageLoader" />
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#" title="Download whiteboard" id="download">
-                <i class="ri-arrow-down-circle-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="#" id="help" title="Help">
-                <i class="ri-question-line"></i>
-            </a>
-        </div>
-        <div class="tool">
-            <a href="" title="End session" id="end-session">
-                <i class="ri-logout-box-r-line"></i>
-            </a>
-        </div>
-    </div>
-    <div class="participants-list"></div>
-    <div id="whiteboard">
-        <div id="sticky-notes-container" style="z-index: 999;"></div>
-        <div id="image-comment-buttons-container" style="z-index: 999;"></div>
-        <canvas id="background-canvas" width="1000px" height="650px"></canvas>
-        <canvas id="canvas" width="1000px" height="650px"></canvas>
-        <div id="image-comments-pannel"></div>
-    </div>
 
-    <div id="initial-state">
-        <div class="input-group">
-            <input type="text" name="username" id="username" placeholder="Enter a username...">
-            <p id="username-error-message">Please provide a username before joining!</p>
+        <div id="initial-state">
+            <div class="input-group">
+                <input type="text" name="username" id="username" placeholder="username" autocomplete="off" autofocus>
+                <p id="username-error-message">Please provide a username before joining!</p>
+            </div>
+            <button id="new-session"><span>Join session</span></button>
         </div>
-        <button id="new-session">Join session</button>
+        <div id="loading-state">
+            <i class="ri-remote-control-line"></i> waiting to join session ...
+        </div>
     </div>
-    <div id="loading-state">
-        <i class="ri-remote-control-line"></i> waiting to join session ...
+    <div class="footer">
+        <a href="https://github.com/nlacko97/collaborative-whiteboard/" target="_blank">
+            <i class="ri-github-fill"></i>
+        </a>
     </div>
-    <!-- <button id="end-session">End session</button> -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
         integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>

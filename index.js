@@ -45,7 +45,6 @@ MongoClient.connect(uri, {
                     sessionParticipants: sessionParticipants
                 });
             }
-            console.log(sessionParticipants);
             if (socket.id == hostUserId) {
                 hostDisconnectedTriggered = true;
                 if (!hostEndSessionTriggered) {
@@ -74,7 +73,6 @@ MongoClient.connect(uri, {
                         sessionParticipants: sessionParticipants
                     });
                 }
-                console.log(sessionParticipants);
             }
         });
         socket.on('new-client-request-decision', (data) => {
@@ -97,7 +95,6 @@ MongoClient.connect(uri, {
                         id: data.clientId,
                         backgroundColor: getRandomRGB()
                     });
-                    console.log(sessionParticipants);
                 } else {
                     dataToSend = {
                         accepted: data.accepted,
@@ -281,7 +278,6 @@ MongoClient.connect(uri, {
                     username: data.username,
                     backgroundColor: getRandomRGB()
                 })
-                console.log(sessionParticipants);
                 dbo.collection('sessions').insertOne(newSession, (err, succ) => {
                     if (err) throw err;
                     console.log("new session inserted");
