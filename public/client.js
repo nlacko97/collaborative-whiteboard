@@ -730,14 +730,14 @@ window.onload = function () {
     function createImageCommentsContainers(commentContainerId, startY, startX, socket) {
         // Add "show comments" button and comment container
         var $showCommentsButton = $(
-            '<button class="show-comments-button">Show comments</button>'
+            '<button class="show-comments-button"><i class="ri-discuss-line"></i></button>'
         );
         $imageCommentButtonDiv.append($showCommentsButton);
-        $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
+        $showCommentsButton.css({ top: startY, left: startX });
         $showCommentsButton.attr('data-comment-container-id', commentContainerId);
 
-        var $addCommentButton = $('<button class="comment-button add-comment"><i class="ri-add-line"></i></button>');
-        var $hideCommentsButton = $('<button class="comment-button hide-comments"><i class="ri-fullscreen-exit-line"></i></button>');
+        var $addCommentButton = $('<button class="comment-button add-comment" title="Add new comment"><i class="ri-add-line"></i></button>');
+        var $hideCommentsButton = $('<button class="comment-button hide-comments" title="hide comments"><i class="ri-fullscreen-exit-line"></i></button>');
         var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
         var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
         $commentsInnerContainer.attr('id', commentContainerId);
