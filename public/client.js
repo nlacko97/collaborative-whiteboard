@@ -730,14 +730,14 @@ window.onload = function () {
     function createImageCommentsContainers(commentContainerId, startY, startX, socket) {
         // Add "show comments" button and comment container
         var $showCommentsButton = $(
-            '<button class="show-comments-button">Show comments</button>'
+            '<button class="show-comments-button"><i class="ri-discuss-line"></i></button>'
         );
         $imageCommentButtonDiv.append($showCommentsButton);
-        $showCommentsButton.css({ top: canvasTop + startY, left: canvasLeft + startX });
+        $showCommentsButton.css({ top: startY, left: startX });
         $showCommentsButton.attr('data-comment-container-id', commentContainerId);
 
-        var $addCommentButton = $('<button class="comment-button add-comment">Add new comment</button>');
-        var $hideCommentsButton = $('<button class="comment-button hide-comments">Hide comments</button>');
+        var $addCommentButton = $('<button class="comment-button add-comment" title="Add new comment"><i class="ri-add-line"></i></button>');
+        var $hideCommentsButton = $('<button class="comment-button hide-comments" title="hide comments"><i class="ri-fullscreen-exit-line"></i></button>');
         var $commentsButtonsContainer = $('<div class="comments-buttons-container"></div>');
         var $commentsInnerContainer = $('<div class="comments-inner-container"></div>');
         $commentsInnerContainer.attr('id', commentContainerId);
@@ -762,7 +762,7 @@ window.onload = function () {
             var comment_id = String(socket.id) + '-' + String(id_counter);
             var $comment = $(
                 '<div id="' + comment_id + '" class="image-comment">' +
-                '<div>Created by:<br/>' + username + '</div>' +
+                '<div><b>' + username + '</b> says:</div>' +
                 '<div class="textarea" contenteditable></div>' +
                 '</div>'
             );
@@ -894,10 +894,9 @@ window.onload = function () {
         $participantsListDiv.html("");
         participants.forEach(p => {
             $participantsListDiv.append(`
-                <div class="participant" id="participant-${p.id}" style="background-color: ${p.backgroundColor};" title="${p.username}">
+                <div class="participant" id="participant-${p.id}" style="background: linear-gradient(to top right, ${p.backgroundColor}, rgb(var(--light-teal)));" title="${p.username}">
                     ${p.username.charAt(0)}
                 </div>
-                <div class="participant-username">${p.username}</div>
             `)
         });
     };
