@@ -321,7 +321,7 @@ button:hover {
     width: 280px;
     margin-left: auto;
     order: 2;
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
 }
 
 #image-comments-pannel > .comments-outer-container {

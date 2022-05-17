@@ -35,6 +35,11 @@ MongoClient.connect(uri, {
 
     function onConnection(socket) {
         console.log("new client :" + socket.id);
+
+        socket.on('test-channel', (data) => {
+            socket.broadcast.emit("test-broadcast", data);
+        });
+
         socket.on('disconnect', () => {
             console.log("disconnect user");
             pIndex = sessionParticipants.findIndex((p) => { return p.id == socket.id });
@@ -135,7 +140,8 @@ MongoClient.connect(uri, {
                     _id: records.ops[0]._id,
                     moves: newMove.moves,
                     userId: newMove.userId,
-                    moveType: newMove.moveType
+                    moveType: newMove.moveType,
+                    broadcastTime: new Date().getTime()
                 }
                 broadcastData(socket, dataToSend);
                 callback({
@@ -144,6 +150,45 @@ MongoClient.connect(uri, {
                 console.log("new move recorded with id: ", records.ops[0]._id);
             })
         });
+
+        socket.on('record-latency', (data) => {
+            data = decryptMessage(data);
+            dbo.collection('latency-records').insertOne({
+                userId: data.id,
+                latency: data.latency
+            })
+        })
+
+        socket.on('get-latency-records', async (data, callback) => {
+            try {
+                console.log(1);
+                let collection = dbo.collection('latency-records');
+                let countDocs = await collection.countDocuments();
+                console.log(countDocs);
+                let minLatency = await collection.find().sort({latency: 1}).limit(1).toArray();
+                // console.log(minLatency);
+                let maxLatency = await collection.find().sort({latency: -1}).limit(1).toArray();
+                // console.log(maxLatency);
+                let avgLatency = await collection.aggregate([
+                    {
+                        $group: {
+                            "_id": "_id",
+                            avgLatency: {$avg: "$latency"}
+                        } 
+                    }
+                ]).toArray();
+                // console.log(avgLatency);
+                collection.drop();
+                callback({
+                    countDocs: countDocs,
+                    minLatency: minLatency,
+                    maxLatency: maxLatency,
+                    avgLatency: avgLatency[0].avgLatency,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        })
 
         socket.on('erase', (message) => {
             message = decryptMessage(message);
@@ -178,7 +223,8 @@ MongoClient.connect(uri, {
                 imageSrc: message.imageSrc,
                 startX: message.startX,
                 startY: message.startY,
-                commentContainerId: message.commentContainerId
+                commentContainerId: message.commentContainerId,
+                broadcastTime: new Date().getTime()
             }
             broadcastData(socket, dataToSend);
         });

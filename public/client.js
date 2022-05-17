@@ -68,6 +68,24 @@ window.onload = function () {
 
     let socket = io();
 
+    socket.on("test-broadcast", (data) => {
+        console.log(data);
+        $("#test").append(data);
+    });
+
+    $("#get-latency-records").click(() => {
+        socket.emit("get-latency-records", {}, (response) => {
+            console.log(response);
+            $("#latency-records").append(`
+                <p>Connected clients: <b>${response.countDocs}</b><p>
+                <p>minimum latency: <b>${response.minLatency[0].latency} ms</b></p>
+                <p>maximum latency: <b>${response.maxLatency[0].latency} ms</b></p>
+                <p>average latency: <b>${response.avgLatency} ms</b></p>
+                <hr>
+            `)
+        })
+    })
+
     $brushLink.on('click', () => {
         mode = "brush";
         $brushLink.addClass("selected");
@@ -260,6 +278,11 @@ window.onload = function () {
 
                     break;
                 case 'new-move':
+                    var curTime = new Date().getTime();
+                    sendData(socket, "record-latency", {
+                        id: socket.id,
+                        latency: curTime - message.broadcastTime
+                    })
                     moves.push({
                         moves: message.moves,
                         _id: message._id,
@@ -283,6 +306,11 @@ window.onload = function () {
                     }
                     break;
                 case 'image-upload':
+                    var curTime = new Date().getTime();
+                    sendData(socket, "record-latency", {
+                        id: socket.id,
+                        latency: curTime - message.broadcastTime
+                    })
                     var img = new Image();
                     img.onload = function () {
                         // Draw image on canvas

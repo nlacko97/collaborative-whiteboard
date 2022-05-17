@@ -1,0 +1,14 @@
+config:
+  target: "ws://localhost:3000"
+  socketio:
+    transports: ["websocket"]
+  phases:
+    - duration: 10 # Run scenario for 10 seconds
+      arrivalCount: 2 # Create 20 virtual users per scenario
+scenarios:
+  - engine: "socketio"
+    flow:
+      - emit:
+          channel: "test-channel"
+          data: "{{ $randomString() }}"
+      - think: 5 # do nothing for 5 seconds, then disconnect
